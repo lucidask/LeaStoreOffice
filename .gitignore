@@ -1,0 +1,29 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub/
+build/
+.idea/
+.flutter-plugins
+.flutter-plugins-dependencies
+.melody/
+.melody.lock
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code related
+.vscode/
+
+# MacOS related
+.DS_Store
+
+# Windows related
+Thumbs.db
+
+# Others
+*.log
+*.lock
