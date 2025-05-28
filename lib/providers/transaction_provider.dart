@@ -10,9 +10,14 @@ class TransactionProvider extends ChangeNotifier {
   final _produitBox = HiveService.produitsBox;
   final _clientBox = HiveService.clientsBox;
 
-  List<t.Transaction> _transactions = []; // 🔥 Liste interne
+  List<t.Transaction> _transactions = [];
 
   List<t.Transaction> get transactions => _transactions;
+
+  TransactionProvider() {
+    loadTransactions();
+  }
+
 
   void loadTransactions() {
     _transactions = _transactionBox.values.toList().cast<t.Transaction>();

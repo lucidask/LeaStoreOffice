@@ -63,4 +63,10 @@ class Transaction extends HiveObject {
   }
 
 
+  @override
+  String toString() {
+    return 'Transaction(id: $id, type: $type, clientId: $clientId, clientNom: $clientNom, fournisseur: $fournisseur, total: $total, produits: $produits)';
+  }
+
+
 }

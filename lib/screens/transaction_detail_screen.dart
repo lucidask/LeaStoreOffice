@@ -14,12 +14,22 @@ class TransactionDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
+
+    print('📌 TransactionDetailScreen : transactionId reçu : $transactionId');
+    print('📌 Liste des IDs dans Provider :');
+    transactionProvider.transactions.forEach((tx) => print(tx.id));
+
     final transaction = transactionProvider.transactions.firstWhere(
           (tx) => tx.id == transactionId,
-      orElse: () => null as t.Transaction, // Permet d'éviter l'erreur de type (Dart ne supporte pas null, donc cast forcé)
+      orElse: () => t.Transaction.dummy(), // Permet d'éviter l'erreur de type (Dart ne supporte pas null, donc cast forcé)
     );
 
+    print('📌 Transaction trouvée : ${transaction.toString()}');
+
     if (transaction == null) {
+      print('❌ Transaction introuvable pour ID : $transactionId');
+
+
       return Scaffold(
         appBar: AppBar(title: const Text('Détails de la transaction')),
         body: const Center(child: Text('Transaction introuvable.')),
