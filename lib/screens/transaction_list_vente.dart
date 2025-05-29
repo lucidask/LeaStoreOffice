@@ -6,7 +6,14 @@ import '../providers/client_provider.dart';
 import '../screens/transaction_detail_screen.dart';
 
 class TransactionListVente extends StatelessWidget {
-  const TransactionListVente({super.key});
+  final String searchQuery;
+  final String selectedFilter;
+
+  const TransactionListVente({
+    super.key,
+    required this.searchQuery,
+    required this.selectedFilter,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,95 +21,72 @@ class TransactionListVente extends StatelessWidget {
         .transactions
         .where((tx) => tx.type == 'vente')
         .toList()
-      ..sort((a, b) => b.date.compareTo(a.date)); // Tri par date et heure
+      ..sort((a, b) => b.date.compareTo(a.date));
 
     final clients = Provider.of<ClientProvider>(context).clients;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Liste des Ventes')),
-      body: transactions.isEmpty
-          ? const Center(child: Text('Aucune vente enregistrée.'))
-          : ListView.builder(
-        itemCount: transactions.length,
-        itemBuilder: (context, index) {
-          final tx = transactions[index];
-          final client = clients.firstWhere(
-                (c) => c.id == tx.clientId,
-            orElse: () => clients.firstWhere((c) => c.nom == 'Anonyme'),
-          );
+    // Filtrage en fonction de searchQuery et selectedFilter
+    final filteredTransactions = transactions.where((tx) {
+      final client = clients.firstWhere(
+            (c) => c.id == tx.clientId,
+        orElse: () => clients.firstWhere((c) => c.nom == 'Anonyme'),
+      );
+      final numero = DateFormat('yyMMddHHmmssms').format(tx.date);
+      final montant = tx.total.toStringAsFixed(2);
 
-          final numeroTransaction = DateFormat('yyMMddHHmmssms').format(tx.date);
+      if (selectedFilter == 'Nom') {
+        return client.nom.toLowerCase().contains(searchQuery.toLowerCase());
+      } else if (selectedFilter == 'Numéro') {
+        return numero.contains(searchQuery);
+      } else if (selectedFilter == 'Montant') {
+        return montant.contains(searchQuery);
+      }
+      return true;
+    }).toList();
 
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.green,
-                child: Icon(Icons.sell, color: Colors.white),
-              ),
-              title: Text(
-                'VENTE - ${client.nom}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Numéro : $numeroTransaction'),
-                  Text('Montant : ${tx.total.toStringAsFixed(2)} HTG', style: const TextStyle(fontWeight: FontWeight.bold),),
-                  Text(DateFormat('dd/MM/yyyy – HH:mm').format(tx.date)),
-                ],
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Édition à implémenter.')),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Supprimer la transaction'),
-                          content: const Text('Êtes-vous sûr de vouloir supprimer cette transaction ?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Annuler'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Provider.of<TransactionProvider>(context, listen: false)
-                                    .supprimerTransaction(tx.id);
-                                Navigator.pop(context);
-                              },
-                              child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TransactionDetailScreen(transactionId: tx.id),
-                  ),
-                );
-              },
+    return filteredTransactions.isEmpty
+        ? const Center(child: Text('Aucune vente correspondante.'))
+        : ListView.builder(
+      itemCount: filteredTransactions.length,
+      itemBuilder: (context, index) {
+        final tx = filteredTransactions[index];
+        final client = clients.firstWhere(
+              (c) => c.id == tx.clientId,
+          orElse: () => clients.firstWhere((c) => c.nom == 'Anonyme'),
+        );
+        final numeroTransaction = DateFormat('yyMMddHHmmssms').format(tx.date);
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Colors.green,
+              child: Icon(Icons.sell, color: Colors.white),
             ),
-          );
-        },
-      ),
+            title: Text(
+              'VENTE - ${client.nom}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Numéro : $numeroTransaction'),
+                Text('Montant : ${tx.total.toStringAsFixed(2)} HTG',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(DateFormat('dd/MM/yyyy – HH:mm').format(tx.date)),
+              ],
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TransactionDetailScreen(transactionId: tx.id),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
