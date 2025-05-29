@@ -1,13 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:lea_store_office/screens/transaction_detail_screen.dart';
 import 'package:provider/provider.dart';
 import '../models/transaction_item.dart';
 import '../providers/client_provider.dart';
 import '../providers/panier_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/transaction_provider.dart';
-import '../utils/pdf_invoice.dart';
 
 class VenteTransactionScreen extends StatefulWidget {
   const VenteTransactionScreen({super.key});
@@ -108,7 +107,7 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
     );
   }
 
-  void _saveTransaction() async {
+  void _saveTransaction() {
     final panierProvider = Provider.of<PanierProvider>(context, listen: false);
     final clientProvider = Provider.of<ClientProvider>(context, listen: false);
 
@@ -120,50 +119,34 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
     }
 
     final clientId = _selectedClientId ?? clientProvider.clients.firstWhere((c) => c.nom == 'Anonyme').id;
-    final clientNom = clientProvider.clients.firstWhere((c) => c.id == clientId).nom;
-    final date = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
-    Provider.of<TransactionProvider>(context, listen: false).ajouterTransaction(
+    final newTransaction = Provider.of<TransactionProvider>(context, listen: false).ajouterTransaction(
       type: 'vente',
       clientId: clientId,
       isCredit: _isCredit,
-      produits: panierProvider.items,
+      produits: panierProvider.items.map((item) => TransactionItem(
+        produitId: item.produitId,
+        produitNom: item.produitNom,
+        produitImagePath: item.produitImagePath,
+        quantite: item.quantite,
+        prixUnitaire: item.prixUnitaire,
+      )).toList(),
     );
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Vente enregistrée 🎉'),
-          content: const Text('Voulez-vous imprimer la facture ?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                panierProvider.clearPanier();
-              },
-              child: const Text('Non'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await PDFInvoice.generateInvoice(
-                  factureId: DateTime.now().millisecondsSinceEpoch.toString(),
-                  clientNom: clientNom,
-                  date: date,
-                  modePaiement: _isCredit ? 'Crédit' : 'Comptant',
-                  produits: panierProvider.items,
-                );
-                panierProvider.clearPanier();
-              },
-              child: const Text('Oui, imprimer'),
-            ),
-          ],
-        );
-      },
+    panierProvider.clearPanier();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Vente enregistrée avec succès !')),
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TransactionDetailScreen(transactionId: newTransaction.id),
+      ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

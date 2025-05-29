@@ -25,7 +25,7 @@ class TransactionProvider extends ChangeNotifier {
   }
   
 
-  void ajouterTransaction({
+  t.Transaction ajouterTransaction({
     required String type,
     String? clientId,
     String? fournisseur,
@@ -76,8 +76,9 @@ class TransactionProvider extends ChangeNotifier {
       }
     }
 
-    loadTransactions(); // Recharge les données
-    notifyListeners();  // Notifie l'interface
+    loadTransactions();
+    notifyListeners();
+    return newTransaction;
   }
 
 

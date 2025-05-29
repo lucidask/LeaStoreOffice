@@ -23,6 +23,7 @@ class TransactionListAchat extends StatelessWidget {
         itemCount: transactions.length,
         itemBuilder: (context, index) {
           final tx = transactions[index];
+          final numeroTransaction = DateFormat('yyMMddHHmmssms').format(tx.date);
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: ListTile(
@@ -37,7 +38,7 @@ class TransactionListAchat extends StatelessWidget {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Numéro de transaction PAS affiché ici comme demandé
+                  Text('Numéro : $numeroTransaction'),
                   Text('Montant : ${tx.total.toStringAsFixed(2)} HTG', style: const TextStyle(fontWeight: FontWeight.bold),),
                   Text(DateFormat('dd/MM/yyyy – HH:mm').format(tx.date)),
                 ],

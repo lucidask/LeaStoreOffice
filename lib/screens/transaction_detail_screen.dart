@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lea_store_office/screens/vente_transaction.dart';
 import 'package:provider/provider.dart';
 import '../models/transaction.dart' as t;
+import '../providers/panier_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/pdf_invoice.dart';
+import 'achat_transaction.dart';
 
 class TransactionDetailScreen extends StatelessWidget {
   final String transactionId;
@@ -14,27 +17,10 @@ class TransactionDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
-
-    print('📌 TransactionDetailScreen : transactionId reçu : $transactionId');
-    print('📌 Liste des IDs dans Provider :');
-    transactionProvider.transactions.forEach((tx) => print(tx.id));
-
     final transaction = transactionProvider.transactions.firstWhere(
           (tx) => tx.id == transactionId,
       orElse: () => t.Transaction.dummy(), // Permet d'éviter l'erreur de type (Dart ne supporte pas null, donc cast forcé)
     );
-
-    print('📌 Transaction trouvée : ${transaction.toString()}');
-
-    if (transaction == null) {
-      print('❌ Transaction introuvable pour ID : $transactionId');
-
-
-      return Scaffold(
-        appBar: AppBar(title: const Text('Détails de la transaction')),
-        body: const Center(child: Text('Transaction introuvable.')),
-      );
-    }
 
     final isVente = transaction.type == 'vente';
     final formattedDate = DateFormat('dd/MM/yyyy – HH:mm').format(transaction.date);
@@ -89,7 +75,7 @@ class TransactionDetailScreen extends StatelessWidget {
                     )
                         : const Icon(Icons.shopping_bag_outlined),
                     title: Text(item.produitNom, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Quantité : ${item.quantite} • Prix : ${item.prixUnitaire.toStringAsFixed(2)} HTG'),
+                    subtitle: Text('Quantité : ${item.quantite} • Cout : ${item.prixUnitaire.toStringAsFixed(2)} HTG'),
                     trailing: Text('${item.sousTotal.toStringAsFixed(2)} HTG'),
                   );
                 },
@@ -104,9 +90,43 @@ class TransactionDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
+            if(isVente)
+            ElevatedButton.icon(
+              onPressed: () {
+                Provider.of<PanierProvider>(context, listen: false).clearPanier();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const VenteTransactionScreen()),
+                );
+              },
+              icon: const Icon(Icons.add_shopping_cart),
+              label: const Text('Nouvelle vente'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.lightBlue,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            if (!isVente)
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AchatTransactionScreen()),
+                );
+              },
+              icon: const Icon(Icons.add_shopping_cart),
+              label: const Text('Nouvel Achat'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.lightBlue,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
           ],
         ),
       ),
     );
+
   }
 }

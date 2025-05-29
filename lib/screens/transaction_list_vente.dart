@@ -31,7 +31,7 @@ class TransactionListVente extends StatelessWidget {
             orElse: () => clients.firstWhere((c) => c.nom == 'Anonyme'),
           );
 
-          final numeroTransaction = DateFormat('HHmmssSSS').format(tx.date);
+          final numeroTransaction = DateFormat('yyMMddHHmmssms').format(tx.date);
 
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
