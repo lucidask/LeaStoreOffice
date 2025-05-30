@@ -9,7 +9,7 @@ class ClientProvider extends ChangeNotifier {
 
   List<Client> get clients => _clientBox.values.toList();
 
-  void ajouterClient(String nom, String? telephone, String? imagePath) {
+  Client ajouterClient(String nom, String? telephone, String? imagePath) {
     final nouveauClient = Client(
       id: const Uuid().v4(),
       nom: nom,
@@ -20,6 +20,7 @@ class ClientProvider extends ChangeNotifier {
 
     _clientBox.put(nouveauClient.id, nouveauClient);
     notifyListeners();
+    return nouveauClient;
   }
 
   void modifierClient(String id, String nom, String? telephone, String? imagePath) {

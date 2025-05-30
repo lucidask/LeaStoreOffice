@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/product_provider.dart';
+import 'product_list_screen.dart'; // Importé pour la navigation
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -187,7 +188,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             const SizedBox(height: 6),
             Consumer<ProductProvider>(
               builder: (context, productProvider, _) {
-                final produits = productProvider.produits.reversed.take(10).toList();
+                final produits = productProvider.produits.reversed.take(5).toList();
                 if (produits.isEmpty) {
                   return const Center(child: Text('Aucun produit enregistré.'));
                 }
@@ -199,30 +200,27 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     final p = produits[index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(1, 0),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: AlwaysStoppedAnimation(1.0), // Pas d'animation répétée
-                            curve: Curves.easeOut,
-                          ),
-                        ),
-                        child: Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 2,
-                          child: ListTile(
-                            leading: p.imagePath != null
-                                ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(File(p.imagePath!), width: 50, height: 50, fit: BoxFit.cover),
-                            )
-                                : const Icon(Icons.shopping_bag_outlined, size: 40, color: Colors.grey),
-                            title: Text(p.codeProduit),
-                            subtitle: Text('${p.prixUnitaire} HTG | Stock : ${p.stock}'),
-                            trailing: const Icon(Icons.chevron_right),
-                          ),
+                      child: Card(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 2,
+                        child: ListTile(
+                          leading: p.imagePath != null
+                              ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(File(p.imagePath!), width: 50, height: 50, fit: BoxFit.cover),
+                          )
+                              : const Icon(Icons.shopping_bag_outlined, size: 40, color: Colors.grey),
+                          title: Text(p.codeProduit),
+                          subtitle: Text('${p.prixUnitaire} HTG | Stock : ${p.stock}'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductListScreen(highlightProductId: p.id),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     );

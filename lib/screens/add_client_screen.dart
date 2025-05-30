@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/client_provider.dart';
+import 'client_list_screen.dart';
 
 class AddClientScreen extends StatefulWidget {
   const AddClientScreen({super.key});
@@ -32,7 +33,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
       final telephone = _telephoneController.text.trim().isEmpty ? null : _telephoneController.text.trim();
       final imagePath = _imageFile?.path;
 
-      Provider.of<ClientProvider>(context, listen: false)
+      final newClient = Provider.of<ClientProvider>(context, listen: false)
           .ajouterClient(nom, telephone, imagePath);
 
       setState(() {
@@ -44,12 +45,20 @@ class _AddClientScreenState extends State<AddClientScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Client ajouté avec succès !')),
       );
+
+      // Redirection vers ClientListScreen avec le client ajouté en surbrillance
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ClientListScreen(highlightedClientId: newClient.id),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final clients = Provider.of<ClientProvider>(context).clients.reversed.take(10).toList();
+    final clients = Provider.of<ClientProvider>(context).clients.reversed.take(5).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Ajouter un Client')),
@@ -58,7 +67,6 @@ class _AddClientScreenState extends State<AddClientScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Formulaire stylé
             Material(
               elevation: 4,
               borderRadius: BorderRadius.circular(12),
@@ -145,6 +153,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                   title: Text(c.nom),
                   subtitle: Text(c.telephone ?? 'Pas de téléphone'),
                   trailing: Text('${c.solde.toStringAsFixed(2)} HTG', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ClientListScreen(highlightedClientId: c.id),
+                      ),
+                    );
+                  },
                 );
               },
             ),

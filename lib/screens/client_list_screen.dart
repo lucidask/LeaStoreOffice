@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/client_provider.dart';
 import 'edit_client_screen.dart';
-import 'client_detail_screen.dart'; // ✅ Ajoute l'import
+import 'client_detail_screen.dart';
 
 class ClientListScreen extends StatelessWidget {
-  const ClientListScreen({super.key});
+  final String? highlightedClientId;
+
+  const ClientListScreen({super.key, this.highlightedClientId});
 
   @override
   Widget build(BuildContext context) {
@@ -20,63 +22,74 @@ class ClientListScreen extends StatelessWidget {
         itemCount: clients.length,
         itemBuilder: (context, index) {
           final c = clients[index];
-          return ListTile(
-            leading: c.imagePath != null
-                ? CircleAvatar(backgroundImage: FileImage(File(c.imagePath!)))
-                : const CircleAvatar(child: Icon(Icons.person)),
-            title: Text(c.nom),
-            subtitle: Text(
-              'Solde : ${c.solde.toStringAsFixed(2)} HTG\n${c.telephone ?? 'Pas de téléphone'}',
+          final isHighlighted = c.id == highlightedClientId;
+
+          return Container(
+            color: isHighlighted ? Colors.lightBlueAccent.withOpacity(0.3) : null,
+            child: ListTile(
+              leading: c.imagePath != null
+                  ? CircleAvatar(backgroundImage: FileImage(File(c.imagePath!)))
+                  : const CircleAvatar(child: Icon(Icons.person)),
+              title: Text(
+                c.nom,
+                style: isHighlighted
+                    ? const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)
+                    : null,
+              ),
+              subtitle: Text(
+                'Solde : ${c.solde.toStringAsFixed(2)} HTG\n${c.telephone ?? 'Pas de téléphone'}',
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EditClientScreen(client: c),
+                        ),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Confirmer la suppression'),
+                          content: const Text('Voulez-vous vraiment supprimer ce client ?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Annuler'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Provider.of<ClientProvider>(context, listen: false)
+                                    .supprimerClient(c.id);
+                                Navigator.pop(context);
+                              },
+                              child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ClientDetailScreen(clientId: c.id),
+                  ),
+                );
+              },
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EditClientScreen(client: c),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Confirmer la suppression'),
-                        content: const Text('Voulez-vous vraiment supprimer ce client ?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Annuler'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Provider.of<ClientProvider>(context, listen: false).supprimerClient(c.id);
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ClientDetailScreen(clientId: c.id),
-                ),
-              );
-            },
           );
         },
       ),

@@ -43,6 +43,42 @@ class TransactionDetailScreen extends StatelessWidget {
                 );
               },
             ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'modifier') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Fonction de modification à implémenter.')),
+                );
+              } else if (value == 'supprimer') {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Supprimer la transaction'),
+                    content: const Text('Êtes-vous sûr de vouloir supprimer cette transaction ?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Annuler'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Provider.of<TransactionProvider>(context, listen: false)
+                              .supprimerTransaction(transaction.id);
+                          Navigator.pop(context); // Fermer le dialog
+                          Navigator.pop(context); // Retourner à la liste
+                        },
+                        child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'modifier', child: Text('Modifier')),
+              const PopupMenuItem(value: 'supprimer', child: Text('Supprimer')),
+            ],
+          ),
         ],
       ),
       body: Padding(

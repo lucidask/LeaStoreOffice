@@ -3,8 +3,9 @@ import 'add_product_screen.dart';
 import 'add_client_screen.dart';
 import 'add_transaction_screen.dart';
 import 'transaction_list_screen.dart';
-import 'product_list_screen.dart'; // ✅ Ajoute l'import
-import 'client_list_screen.dart';  // ✅ Ajoute l'import
+import 'product_list_screen.dart';
+import 'client_list_screen.dart';
+import 'comptabilite_screen.dart';  // 👉 N'oublie pas d'importer le fichier une fois créé
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,7 +13,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('LeaStoreOffice')),
+      appBar: AppBar(title: const Text('Lea Store Office')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: GridView.count(
@@ -25,8 +26,9 @@ class HomeScreen extends StatelessWidget {
             _buildTile(context, 'Créer Vente', Icons.sell, const AddTransactionScreen(type: 'vente')),
             _buildTile(context, 'Créer Achat', Icons.shopping_cart, const AddTransactionScreen(type: 'achat')),
             _buildTile(context, 'Liste Transactions', Icons.list, const TransactionListScreen()),
-            _buildTile(context, 'Liste Produits', Icons.inventory, const ProductListScreen()), // ✅ Ajouté
-            _buildTile(context, 'Liste Clients', Icons.people, const ClientListScreen()),     // ✅ Ajouté
+            _buildTile(context, 'Liste Produits', Icons.inventory, const ProductListScreen()),
+            _buildTile(context, 'Liste Clients', Icons.people, const ClientListScreen()),
+            _buildTile(context, 'Comptabilité', Icons.account_balance_wallet, const ComptabiliteScreen()), // 🎯 Bouton ajouté
           ],
         ),
       ),

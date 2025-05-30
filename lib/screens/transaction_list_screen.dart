@@ -4,18 +4,26 @@ import 'transaction_list_achat.dart';
 import '../widgets/custom_search_bar.dart';
 
 class TransactionListScreen extends StatefulWidget {
-  const TransactionListScreen({super.key});
+  final String initialTab; // Peut être 'vente' ou 'achat'
+
+  const TransactionListScreen({super.key, this.initialTab = 'vente'});
 
   @override
   State<TransactionListScreen> createState() => _TransactionListScreenState();
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
-  bool _isVente = true;
+  late bool _isVente;
   bool _isSearching = false;
   String _selectedFilter = 'Nom';
   final List<String> _filters = ['Nom', 'Numéro', 'Montant'];
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _isVente = widget.initialTab == 'vente';
+  }
 
   @override
   void dispose() {
