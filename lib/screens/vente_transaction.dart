@@ -18,6 +18,9 @@ class VenteTransactionScreen extends StatefulWidget {
 class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
   String? _selectedClientId;
   bool _isCredit = false;
+  final TextEditingController _versementController = TextEditingController();
+
+
 
   void _showPanier() {
     showModalBottomSheet(
@@ -118,8 +121,54 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
       return;
     }
 
-    final clientId = _selectedClientId ?? clientProvider.clients.firstWhere((c) => c.nom == 'Anonyme').id;
+    final anonymeId = clientProvider.clients.firstWhere((c) => c.nom == 'Anonyme').id;
+    final clientId = _selectedClientId ?? anonymeId;
+    final versement = double.tryParse(_versementController.text) ?? 0.0;
 
+    final total = panierProvider.items.fold(0.0, (sum, item) => sum + item.quantite * item.prixUnitaire);
+
+    // 🌟 Vérifications AVANT la création de la transaction
+
+    if (_isCredit) {
+      // Vente CRÉDIT
+      if (_selectedClientId == null || _selectedClientId == anonymeId) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Veuillez sélectionner un client pour une vente à crédit.')),
+        );
+        return;
+      }
+
+      if (versement > total) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Le versement ne peut pas dépasser le total.')),
+        );
+        return;
+      }
+
+      if (versement == total) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Veuillez choisir une vente cash.')),
+        );
+        return;
+      }
+    } else {
+      // Vente CASH
+      if (_versementController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Le champ versement ne peut pas rester vide.')),
+        );
+        return;
+      }
+
+      if (versement != total) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Le versement doit être exactement égal au montant total.')),
+        );
+        return;
+      }
+    }
+
+    // 🌟 Création de la transaction APRES toutes les vérifications
     final newTransaction = Provider.of<TransactionProvider>(context, listen: false).ajouterTransaction(
       type: 'vente',
       clientId: clientId,
@@ -131,9 +180,11 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
         quantite: item.quantite,
         prixUnitaire: item.prixUnitaire,
       )).toList(),
+      versement: versement,
     );
 
     panierProvider.clearPanier();
+    _versementController.clear();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Vente enregistrée avec succès !')),
@@ -146,7 +197,6 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +272,23 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
                 });
               },
             ),
+
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: TextField(
+                controller: _versementController,
+                decoration: const InputDecoration(
+                  labelText: 'Versement lors de la vente (HTG)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.attach_money),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ),
+
+
             const SizedBox(height: 10),
+
             Expanded(
               child: ListView.builder(
                 itemCount: produits.length,
@@ -303,4 +369,11 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _versementController.dispose();
+    super.dispose();
+  }
+
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lea_store_office/screens/transaction_supprimee_screen.dart';
 import 'transaction_list_vente.dart';
 import 'transaction_list_achat.dart';
 import '../widgets/custom_search_bar.dart';
@@ -62,6 +63,34 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
           ),
+          if (!_isSearching) // ✅ On montre le menu seulement hors mode recherche
+            PopupMenuButton<String>(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  value: 'historique',
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.history, size: 20),
+                      SizedBox(width: 8),
+                      Text('Historique des suppressions', style: TextStyle(fontSize: 14)),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (value) {
+                if (value == 'historique') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TransactionSupprimeeScreen()),
+                  );
+                }
+              },
+              icon: const Icon(Icons.more_vert, size: 20),
+            ),
         ],
       ),
       body: Column(

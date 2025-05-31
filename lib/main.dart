@@ -3,6 +3,7 @@ import 'package:lea_store_office/providers/client_provider.dart';
 import 'package:lea_store_office/providers/panier_provider.dart';
 import 'package:lea_store_office/providers/product_provider.dart';
 import 'package:lea_store_office/providers/transaction_provider.dart';
+import 'package:lea_store_office/providers/versement_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'database/hive_service.dart';
@@ -19,6 +20,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ClientProvider()..initialiserClientAnonyme()),
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => PanierProvider()),
+        ChangeNotifierProvider(create: (_) => VersementProvider()),
       ],
       child: const MyApp(),
     ),

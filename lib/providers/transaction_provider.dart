@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:lea_store_office/database/hive_service.dart';
 import 'package:lea_store_office/models/transaction.dart' as t;
 import 'package:lea_store_office/models/transaction_item.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+
+import '../models/transaction_supprimee.dart';
 
 class TransactionProvider extends ChangeNotifier {
   final _transactionBox = HiveService.transactionsBox;
   final _produitBox = HiveService.produitsBox;
   final _clientBox = HiveService.clientsBox;
-
   List<t.Transaction> _transactions = [];
-
   List<t.Transaction> get transactions => _transactions;
+  final Box<TransactionSupprimee> _transactionSupprimeeBox = Hive.box<TransactionSupprimee>('transactionsSupprimees');
+  List<TransactionSupprimee> get transactionsSupprimees => _transactionSupprimeeBox.values.toList();
+
+
 
   TransactionProvider() {
     loadTransactions();
@@ -23,7 +27,7 @@ class TransactionProvider extends ChangeNotifier {
     _transactions = _transactionBox.values.toList().cast<t.Transaction>();
     notifyListeners();
   }
-  
+
 
   t.Transaction ajouterTransaction({
     required String type,
@@ -32,9 +36,10 @@ class TransactionProvider extends ChangeNotifier {
     required bool isCredit,
     required List<TransactionItem> produits,
     String? note,
+    double versement = 0.0, // ✅ On ajoute le paramètre versement
   }) {
     final now = DateTime.now();
-    final id = const Uuid().v4(); // 🔥 Génération d'un ID unique et propre
+    final id = const Uuid().v4();
 
     final total = produits.fold(0.0, (sum, item) => sum + item.sousTotal);
     final client = clientId != null ? _clientBox.get(clientId) : null;
@@ -71,8 +76,11 @@ class TransactionProvider extends ChangeNotifier {
     if (clientId != null && isCredit) {
       final client = _clientBox.get(clientId);
       if (client != null) {
-        client.solde += total;
-        client.save();
+        final difference = total - versement;
+        if (difference > 0) {
+          client.solde += difference;
+          client.save();
+        }
       }
     }
 
@@ -80,6 +88,7 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
     return newTransaction;
   }
+
 
 
   void supprimerTransaction(String id) {
@@ -108,8 +117,18 @@ class TransactionProvider extends ChangeNotifier {
       }
     }
 
+    // Sauvegarder l'historique de la suppression
+    final suppression = TransactionSupprimee(
+      id: DateTime.now().toIso8601String(),
+      dateSuppression: DateTime.now(),
+      transactionOriginale: transaction,
+    );
+    _transactionSupprimeeBox.put(suppression.id, suppression);
+
     // Supprimer la transaction
     _transactionBox.delete(id);
+
+    // Mettre à jour la liste
     loadTransactions();
     notifyListeners();
   }

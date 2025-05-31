@@ -23,7 +23,9 @@ class TransactionDetailScreen extends StatelessWidget {
     );
 
     final isVente = transaction.type == 'vente';
-    final formattedDate = DateFormat('dd/MM/yyyy – HH:mm').format(transaction.date);
+    final formattedDate = DateFormat('dd/MM/yyyy  HH:mm').format(transaction.date);
+    final factureId = DateFormat('yyMMddHHmmssSSS').format(transaction.date);
+
 
     return Scaffold(
       appBar: AppBar(
@@ -35,8 +37,8 @@ class TransactionDetailScreen extends StatelessWidget {
               tooltip: 'Imprimer la facture',
               onPressed: () async {
                 await PDFInvoice.generateInvoice(
-                  factureId: transaction.id.toString(),
-                  clientNom: transaction.clientId ?? 'Anonyme',
+                  factureId: factureId,
+                  clientNom: transaction.clientNom ?? 'Anonyme',
                   date: formattedDate,
                   modePaiement: transaction.isCredit ? 'Crédit' : 'Comptant',
                   produits: transaction.produits,
@@ -44,12 +46,25 @@ class TransactionDetailScreen extends StatelessWidget {
               },
             ),
           PopupMenuButton<String>(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: EdgeInsets.zero,
+            itemBuilder: (context) => [
+              PopupMenuItem<String>(
+                value: 'supprimer',
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: const [
+                    Icon(Icons.delete, color: Colors.red, size: 20),
+                    SizedBox(width: 8),
+                    Text('Supprimer', style: TextStyle(fontSize: 14)),
+                  ],
+                ),
+              ),
+            ],
             onSelected: (value) {
-              if (value == 'modifier') {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Fonction de modification à implémenter.')),
-                );
-              } else if (value == 'supprimer') {
+              if (value == 'supprimer') {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
@@ -74,10 +89,7 @@ class TransactionDetailScreen extends StatelessWidget {
                 );
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'modifier', child: Text('Modifier')),
-              const PopupMenuItem(value: 'supprimer', child: Text('Supprimer')),
-            ],
+            icon: const Icon(Icons.more_vert, size: 20),
           ),
         ],
       ),

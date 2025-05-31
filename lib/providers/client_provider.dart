@@ -54,5 +54,22 @@ class ClientProvider extends ChangeNotifier {
     }
   }
 
+  void reduireSolde(String clientId, double montant) {
+    final client = _clientBox.get(clientId);
+    if (client != null) {
+      client.solde -= montant;
+      client.save();
+      notifyListeners();
+    }
+  }
+
+  void augmenterSolde(String clientId, double montant) {
+    final client = _clientBox.get(clientId);
+    if (client != null) {
+      client.solde += montant;
+      client.save();
+      notifyListeners();
+    }
+  }
 
 }

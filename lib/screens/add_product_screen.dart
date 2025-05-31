@@ -211,7 +211,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           )
                               : const Icon(Icons.shopping_bag_outlined, size: 40, color: Colors.grey),
                           title: Text(p.codeProduit),
-                          subtitle: Text('${p.prixUnitaire} HTG | Stock : ${p.stock}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${p.prixUnitaire} HTG | Stock : ${p.stock}'),
+                              Text('Catégorie : ${p.categorie}'),
+                            ],
+                          ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
                             Navigator.push(
