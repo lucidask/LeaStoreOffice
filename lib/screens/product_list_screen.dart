@@ -5,6 +5,7 @@ import '../providers/product_provider.dart';
 import 'add_product_screen.dart';
 import 'edit_product_screen.dart';
 import '../widgets/custom_search_bar.dart';
+import '../widgets/paginated_list.dart'; // ✅ Assurez-vous d'importer votre fichier PaginatedList
 
 class ProductListScreen extends StatefulWidget {
   final String? highlightProductId;
@@ -15,9 +16,6 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  int _currentPage = 1;
-  static const int _itemsPerPage = 10;
-
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Code';
@@ -58,12 +56,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
       return matchCategory && matchSearch;
     }).toList();
 
-    final totalPages = (filteredProduits.length / _itemsPerPage).ceil();
-    final paginatedProduits = filteredProduits
-        .skip((_currentPage - 1) * _itemsPerPage)
-        .take(_itemsPerPage)
-        .toList();
-
     return Scaffold(
       appBar: AppBar(
         title: _isSearching
@@ -74,13 +66,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
           onSearchChanged: (value) {
             setState(() {
               _searchText = value;
-              _currentPage = 1;
             });
           },
           onFilterChanged: (value) {
             setState(() {
               _selectedFilter = value;
-              _currentPage = 1;
             });
           },
           hintText: 'Rechercher...',
@@ -121,14 +111,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
               children: [
                 const Text('Catégorie : ', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                Expanded(
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
+                      menuMaxHeight: 300,
                       value: _selectedCategory,
                       items: categories.map((cat) {
                         return DropdownMenuItem(
@@ -140,7 +126,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         if (value != null) {
                           setState(() {
                             _selectedCategory = value;
-                            _currentPage = 1;
                           });
                         }
                       },
@@ -154,139 +139,87 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
 
-          if (filteredProduits.isEmpty)
-            const Expanded(child: Center(child: Text('Aucun produit trouvé.')))
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: paginatedProduits.length,
-                itemBuilder: (context, index) {
-                  final p = paginatedProduits[index];
-                  final isHighlighted = p.id == widget.highlightProductId;
-
-                  return Card(
-                    color: isHighlighted ? Colors.lightBlueAccent.withOpacity(0.3) : null,
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: ListTile(
-                      leading: p.imagePath != null
-                          ? ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: Image.file(File(p.imagePath!), width: 50, height: 50, fit: BoxFit.cover),
-                      )
-                          : const Icon(Icons.inventory_2, size: 40, color: Colors.grey),
-                      title: Text(
-                        p.codeProduit,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Prix : ${p.prixUnitaire.toStringAsFixed(2)} HTG • Stock : ${p.stock}',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          Text(
-                            'Catégorie : ${p.categorie}',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditProductScreen(produit: p),
-                                ),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Confirmer la suppression'),
-                                  content: const Text('Voulez-vous vraiment supprimer ce produit ?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Annuler'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Provider.of<ProductProvider>(context, listen: false)
-                                            .supprimerProduit(p.id);
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+          // ✅ PaginatedList intégrée ici
+          Expanded(
+            child: PaginatedList(
+              items: filteredProduits,
+              itemsPerPage: 50,
+              itemBuilder: (context, p) {
+                final isHighlighted = p.id == widget.highlightProductId;
+                return Card(
+                  color: isHighlighted ? Colors.lightBlueAccent.withOpacity(0.3) : null,
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: ListTile(
+                    leading: p.imagePath != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.file(File(p.imagePath!), width: 50, height: 50, fit: BoxFit.cover),
+                    )
+                        : const Icon(Icons.inventory_2, size: 40, color: Colors.grey),
+                    title: Text(
+                      p.codeProduit,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  );
-                },
-              ),
-            ),
-          if (totalPages > 1)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: _currentPage > 1
-                        ? () {
-                      setState(() {
-                        _currentPage--;
-                      });
-                    }
-                        : null,
-                  ),
-                  ...List.generate(totalPages, (index) {
-                    final page = index + 1;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _currentPage == page ? Colors.blue : Colors.grey[300],
-                          foregroundColor: _currentPage == page ? Colors.white : Colors.black,
-                          minimumSize: const Size(36, 36),
-                          padding: EdgeInsets.zero,
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Prix : ${p.prixUnitaire.toStringAsFixed(2)} HTG • Stock : ${p.stock}',
+                          style: const TextStyle(color: Colors.grey),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _currentPage = page;
-                          });
-                        },
-                        child: Text('$page'),
-                      ),
-                    );
-                  }),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed: _currentPage < totalPages
-                        ? () {
-                      setState(() {
-                        _currentPage++;
-                      });
-                    }
-                        : null,
+                        Text(
+                          'Catégorie : ${p.categorie}',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditProductScreen(produit: p),
+                              ),
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Confirmer la suppression'),
+                                content: const Text('Voulez-vous vraiment supprimer ce produit ?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Annuler'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Provider.of<ProductProvider>(context, listen: false)
+                                          .supprimerProduit(p.id);
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
+          ),
         ],
       ),
     );

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import '../models/versement.dart';
 import '../database/hive_service.dart';
 import 'package:uuid/uuid.dart';
@@ -32,5 +31,12 @@ class VersementProvider with ChangeNotifier {
     _versementBox.delete(id);
     notifyListeners();
   }
+
+  Versement? getDernierVersementParClient(String clientId) {
+    final liste = versements.where((v) => v.clientId == clientId).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+    return liste.isNotEmpty ? liste.first : null;
+  }
+
 
 }

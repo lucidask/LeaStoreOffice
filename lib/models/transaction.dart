@@ -35,6 +35,14 @@ class Transaction extends HiveObject {
   @HiveField(9)
   String? clientNom; // ✅ Nouveau champ pour vente
 
+  @HiveField(10)
+  double? versement;
+
+  @HiveField(11)
+  double? depotUtilise;
+
+
+
   Transaction({
     required this.id,
     required this.type,
@@ -45,7 +53,10 @@ class Transaction extends HiveObject {
     this.note,
     required this.total,
     this.fournisseur,
-    this.clientNom, // ✅ Ajout au constructeur
+    this.clientNom,
+    this.versement,
+    this.depotUtilise,
+
   });
 
   factory Transaction.dummy() {
@@ -59,13 +70,16 @@ class Transaction extends HiveObject {
       clientNom: '',
       fournisseur: '',
       total: 0,
+      versement: null,
+      depotUtilise: null,
+
     );
   }
 
 
   @override
   String toString() {
-    return 'Transaction(id: $id, type: $type, clientId: $clientId, clientNom: $clientNom, fournisseur: $fournisseur, total: $total, produits: $produits)';
+    return 'Transaction(id: $id, type: $type, clientId: $clientId, clientNom: $clientNom, fournisseur: $fournisseur, total: $total, produits: $produits, Balance: $versement, depot d\'avance utilisé: $depotUtilise)';
   }
 
 

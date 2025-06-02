@@ -19,12 +19,17 @@ class Client extends HiveObject {
   @HiveField(4)
   double solde;
 
+  @HiveField(5)
+  double? depot;
+
+
   Client({
     required this.id,
     required this.nom,
     this.telephone,
     this.imagePath,
     required this.solde,
+    this.depot,
   });
 }
 

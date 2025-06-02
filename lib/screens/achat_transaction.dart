@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lea_store_office/screens/transaction_detail_screen.dart';
@@ -124,45 +125,60 @@ class _AchatTransactionScreenState extends State<AchatTransactionScreen> {
                 children: [
                   SizedBox(
                     width: 200,
-                    child: DropdownButtonFormField<Produit>(
-                      value: _selectedProduit,
-                      isExpanded: true,
-                      items: produits.map((p) {
-                        return DropdownMenuItem(
-                          value: p,
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 32,
-                                height: 32,
-                                margin: const EdgeInsets.only(right: 10),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  image: p.imagePath != null
-                                      ? DecorationImage(
-                                    image: FileImage(File(p.imagePath!)),
-                                    fit: BoxFit.cover,
-                                  )
-                                      : null,
-                                  color: p.imagePath == null ? Colors.grey.shade300 : null,
-                                ),
-                                child: p.imagePath == null
-                                    ? const Icon(Icons.image, size: 18, color: Colors.grey)
-                                    : null,
-                              ),
-                              Flexible(child: Text(p.codeProduit, overflow: TextOverflow.ellipsis)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                    child: DropdownSearch<Produit>(
+                      items: produits,
+                      selectedItem: _selectedProduit,
+                      itemAsString: (Produit? p) => p?.codeProduit ?? '',
                       onChanged: (val) {
                         setState(() {
                           _selectedProduit = val;
                         });
                       },
-                      decoration: const InputDecoration(
-                        labelText: 'Produit',
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                      dropdownDecoratorProps: const DropDownDecoratorProps(
+                        dropdownSearchDecoration: InputDecoration(
+                          labelText: 'Produit',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      popupProps: PopupProps.menu(
+                        showSearchBox: true,
+                        itemBuilder: (context, Produit? p, bool isSelected) {
+                          if (p == null) return const SizedBox();
+                          return ListTile(
+                            leading: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                image: p.imagePath != null
+                                    ? DecorationImage(
+                                  image: FileImage(File(p.imagePath!)),
+                                  fit: BoxFit.cover,
+                                )
+                                    : null,
+                                color: p.imagePath == null ? Colors.grey.shade300 : null,
+                              ),
+                              child: p.imagePath == null
+                                  ? const Icon(Icons.image, size: 18, color: Colors.grey)
+                                  : null,
+                            ),
+                            title: Text(
+                              p.codeProduit,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        },
+                        constraints: const BoxConstraints(maxHeight: 300),
+                        searchFieldProps: const TextFieldProps(
+                          decoration: InputDecoration(
+                            labelText: 'Rechercher...',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      dropdownButtonProps: const DropdownButtonProps(
+                        icon: Icon(Icons.arrow_drop_down),
                       ),
                     ),
                   ),

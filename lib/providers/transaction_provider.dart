@@ -4,7 +4,6 @@ import 'package:lea_store_office/database/hive_service.dart';
 import 'package:lea_store_office/models/transaction.dart' as t;
 import 'package:lea_store_office/models/transaction_item.dart';
 import 'package:uuid/uuid.dart';
-
 import '../models/transaction_supprimee.dart';
 
 class TransactionProvider extends ChangeNotifier {
@@ -36,7 +35,8 @@ class TransactionProvider extends ChangeNotifier {
     required bool isCredit,
     required List<TransactionItem> produits,
     String? note,
-    double versement = 0.0, // ✅ On ajoute le paramètre versement
+    double? versement,
+    double? depotUtilise,
   }) {
     final now = DateTime.now();
     final id = const Uuid().v4();
@@ -55,6 +55,8 @@ class TransactionProvider extends ChangeNotifier {
       produits: produits,
       note: note,
       total: total,
+      versement: versement,
+      depotUtilise: depotUtilise,
     );
 
     _transactionBox.put(newTransaction.id, newTransaction);
@@ -71,19 +73,6 @@ class TransactionProvider extends ChangeNotifier {
         produit.save();
       }
     }
-
-    // Mise à jour du solde client si crédit
-    if (clientId != null && isCredit) {
-      final client = _clientBox.get(clientId);
-      if (client != null) {
-        final difference = total - versement;
-        if (difference > 0) {
-          client.solde += difference;
-          client.save();
-        }
-      }
-    }
-
     loadTransactions();
     notifyListeners();
     return newTransaction;
@@ -132,76 +121,5 @@ class TransactionProvider extends ChangeNotifier {
     loadTransactions();
     notifyListeners();
   }
-
-  void modifierTransaction({
-    required String id,
-    required String type,
-    String? clientId,
-    String? fournisseur,
-    required bool isCredit,
-    required List<TransactionItem> produits,
-  }) {
-    final ancienneTransaction = _transactionBox.get(id);
-    if (ancienneTransaction == null) return;
-
-    // 🛠️ 1️⃣ Restaurer l'ancienne transaction
-    for (var item in ancienneTransaction.produits) {
-      final produit = _produitBox.get(item.produitId);
-      if (produit != null) {
-        if (ancienneTransaction.type == 'vente') {
-          produit.stock += item.quantite; // Remet le stock
-        } else if (ancienneTransaction.type == 'achat') {
-          produit.stock -= item.quantite; // Retire du stock
-        }
-        produit.save();
-      }
-    }
-
-    // Restaurer le solde client si crédit
-    if (ancienneTransaction.type == 'vente' && ancienneTransaction.isCredit && ancienneTransaction.clientId != null) {
-      final client = _clientBox.get(ancienneTransaction.clientId);
-      if (client != null) {
-        client.solde -= ancienneTransaction.total;
-        client.save();
-      }
-    }
-
-    // 🛠️ 2️⃣ Calculer le nouveau total
-    final nouveauTotal = produits.fold(0.0, (sum, item) => sum + item.sousTotal);
-
-    // 🛠️ 3️⃣ Mettre à jour la transaction
-    ancienneTransaction.clientId = clientId;
-    ancienneTransaction.fournisseur = fournisseur;
-    ancienneTransaction.isCredit = isCredit;
-    ancienneTransaction.produits = produits;
-    ancienneTransaction.total = nouveauTotal;
-    ancienneTransaction.date = DateTime.now();
-    ancienneTransaction.save();
-
-    // 🛠️ 4️⃣ Appliquer la nouvelle transaction
-    for (var item in produits) {
-      final produit = _produitBox.get(item.produitId);
-      if (produit != null) {
-        if (type == 'vente') {
-          produit.stock -= item.quantite;
-        } else if (type == 'achat') {
-          produit.stock += item.quantite;
-        }
-        produit.save();
-      }
-    }
-
-    // Mettre à jour le solde client si vente à crédit
-    if (type == 'vente' && isCredit && clientId != null) {
-      final client = _clientBox.get(clientId);
-      if (client != null) {
-        client.solde += nouveauTotal;
-        client.save();
-      }
-    }
-    loadTransactions();
-    notifyListeners();
-  }
-
 
 }

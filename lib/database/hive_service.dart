@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:lea_store_office/models/depot.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/produit.dart';
 import '../models/client.dart';
@@ -19,6 +20,7 @@ class HiveService {
     Hive.registerAdapter(TransactionAdapter());
     Hive.registerAdapter(TransactionSupprimeeAdapter());
     Hive.registerAdapter(VersementAdapter());
+    Hive.registerAdapter(DepotAdapter());
 
 
     // Open boxes
@@ -27,6 +29,7 @@ class HiveService {
     await Hive.openBox<Transaction>('transactions');
     await Hive.openBox<TransactionSupprimee>('transactionsSupprimees');
     await Hive.openBox<Versement>('versements');
+    await Hive.openBox<Depot>('depots');
 
   }
 
@@ -36,5 +39,6 @@ class HiveService {
   static Box<Transaction> get transactionsBox => Hive.box<Transaction>('transactions');
   static Box<TransactionSupprimee> get transactionsSupprimeesBox => Hive.box<TransactionSupprimee>('transactionsSupprimees');
   static Box<Versement> get versementsBox => Hive.box<Versement>('versements');
+  static Box<Depot> get depotsBox => Hive.box<Depot>('depots');
 
 }

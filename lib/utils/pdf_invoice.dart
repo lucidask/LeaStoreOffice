@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
@@ -11,12 +10,14 @@ class PDFInvoice {
     required String date,
     required String modePaiement,
     required List<TransactionItem> produits,
+    required double versement,
+    required double depotUtilise,
   }) async {
     final pdf = pw.Document();
     final logo = await imageFromAssetBundle('assets/logo.jpg');
 
-
     final total = produits.fold(0.0, (sum, item) => sum + item.quantite * item.prixUnitaire);
+    final balance = (total - versement - depotUtilise).clamp(0.0, double.infinity);
 
     pdf.addPage(
       pw.Page(
@@ -50,7 +51,6 @@ class PDFInvoice {
                     3: const pw.FlexColumnWidth(2),
                   },
                   children: [
-                    // En-têtes
                     pw.TableRow(
                       decoration: const pw.BoxDecoration(color: PdfColors.grey300),
                       children: [
@@ -60,7 +60,6 @@ class PDFInvoice {
                         pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
                       ],
                     ),
-                    // Contenu des produits
                     ...produits.map((item) {
                       return pw.TableRow(
                         children: [
@@ -74,10 +73,22 @@ class PDFInvoice {
                   ],
                 ),
                 pw.Divider(),
+
+                // ✅ Total, Versement et Balance bien alignés
                 pw.Align(
                   alignment: pw.Alignment.centerRight,
-                  child: pw.Text('Total : ${total.toStringAsFixed(2)} HTG', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('Total : ${total.toStringAsFixed(2)} HTG', style: pw.TextStyle(fontSize: 14)),
+                      pw.Text('Versement : ${versement.toStringAsFixed(2)} HTG', style: pw.TextStyle(fontSize: 14)),
+                      if (depotUtilise > 0.01)
+                        pw.Text('Dépôt utilisé : ${depotUtilise.toStringAsFixed(2)} HTG', style: pw.TextStyle(fontSize: 14)),
+                      pw.Text('Balance : ${balance.toStringAsFixed(2)} HTG', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                    ],
+                  ),
                 ),
+
                 pw.SizedBox(height: 20),
                 pw.Text('Merci pour votre achat !', style: pw.TextStyle(fontStyle: pw.FontStyle.italic)),
               ],

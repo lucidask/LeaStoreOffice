@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -115,23 +116,40 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 ),
                                 validator: (v) => v!.isEmpty ? 'Champ obligatoire' : null,
                               )
-                                  : DropdownButtonFormField<String>(
-                                value: _selectedCategory,
-                                decoration: const InputDecoration(
-                                  labelText: 'Catégorie',
-                                  prefixIcon: Icon(Icons.category_outlined),
-                                  border: OutlineInputBorder(),
-                                ),
-                                items: categories
-                                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                                    .toList(),
+                                  : DropdownSearch<String>(
+                                items: categories.toList(),
+                                selectedItem: _selectedCategory,
                                 onChanged: (value) {
-                                  setState(() {
-                                    _selectedCategory = value;
-                                  });
+                                  if (value != null) {
+                                    setState(() {
+                                      _selectedCategory = value;
+                                    });
+                                  }
                                 },
                                 validator: (v) => v == null || v.isEmpty ? 'Champ obligatoire' : null,
-                              ),
+                                dropdownDecoratorProps: const DropDownDecoratorProps(
+                                  dropdownSearchDecoration: InputDecoration(
+                                    labelText: 'Catégorie',
+                                    prefixIcon: Icon(Icons.category_outlined),
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  ),
+                                ),
+                                popupProps: const PopupProps.menu(
+                                  showSearchBox: true,
+                                  searchFieldProps: TextFieldProps(
+                                    decoration: InputDecoration(
+                                      labelText: 'Rechercher...',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                  constraints: BoxConstraints(maxHeight: 300),
+                                ),
+                                dropdownButtonProps: const DropdownButtonProps(
+                                  icon: Icon(Icons.arrow_drop_down),
+                                ),
+                              )
+
                             ],
                           );
                         },

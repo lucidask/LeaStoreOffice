@@ -4,8 +4,9 @@ import 'package:printing/printing.dart';
 import '../models/versement.dart';
 
 class PDFVersementDetail {
-  static Future<void> generateVersementPdf(Versement v, String clientNom) async {
+  static Future<void> generateVersementPdf(Versement v, String clientNom, double soldeRestant) async {
     final pdf = pw.Document();
+    final logo = await imageFromAssetBundle('assets/logo.jpg');
 
     pdf.addPage(
       pw.Page(
@@ -15,10 +16,18 @@ class PDFVersementDetail {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Détail du Versement', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 20),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Détail du Versement', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                  pw.SizedBox(width: 20),
+                  pw.Image(logo, width: 100),
+                ],
+              ),
+               pw.SizedBox(height: 10),
               pw.Text('Client : $clientNom'),
               pw.Text('Montant : ${v.montant.toStringAsFixed(2)} HTG'),
+              pw.Text('Balance restante : $soldeRestant}'),
               pw.Text('Date : ${v.date}'),
             ],
           ),

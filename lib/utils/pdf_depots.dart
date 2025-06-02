@@ -1,16 +1,15 @@
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
-import '../models/versement.dart';
+import '../models/depot.dart';
 
-class PDFVersements {
-  static Future<void> generateVersementsPdf({
+class PDFDepots {
+  static Future<void> generateDepotsPdf({
     required String clientNom,
-    required List<Versement> versements,
+    required List<Depot> depots,
   }) async {
     final pdf = pw.Document();
     final logo = await imageFromAssetBundle('assets/logo.jpg');
-
 
     pdf.addPage(
       pw.Page(
@@ -23,13 +22,13 @@ class PDFVersements {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Historique des versements', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Historique des dépôts d\'avance', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(width: 20),
                   pw.Image(logo, width: 100),
                 ],
               ),
               pw.Text('Client : $clientNom'),
-              pw.SizedBox(height: 10),
+              pw.SizedBox(height: 20),
               pw.Table(
                 border: pw.TableBorder.all(),
                 columnWidths: {
@@ -44,10 +43,10 @@ class PDFVersements {
                       pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Date', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
                     ],
                   ),
-                  ...versements.map((v) => pw.TableRow(
+                  ...depots.map((d) => pw.TableRow(
                     children: [
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('${v.montant.toStringAsFixed(2)} HTG')),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(v.date.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('${d.montant.toStringAsFixed(2)} HTG')),
+                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(d.date.toString())),
                     ],
                   )),
                 ],

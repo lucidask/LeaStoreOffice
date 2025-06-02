@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/transaction_provider.dart';
+import '../utils/date_filter_helper.dart'; // ✅ Import correct
 
 class ComptabiliteScreen extends StatefulWidget {
   const ComptabiliteScreen({super.key});
@@ -13,51 +14,13 @@ class ComptabiliteScreen extends StatefulWidget {
 }
 
 class _ComptabiliteScreenState extends State<ComptabiliteScreen> {
-  String _selectedFilter = 'Jour';
-  DateTimeRange? _selectedDateRange;
-
-  final List<String> _filters = ['Jour', 'Mois', 'Année'];
-
-  void _selectDateRange() async {
-    final now = DateTime.now();
-    final initialRange = _selectedDateRange ??
-        DateTimeRange(start: now.subtract(const Duration(days: 7)), end: now);
-
-    DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: now, // 🚫 Bloque les dates futures
-      initialDateRange: initialRange,
-    );
-
-    if (picked != null) {
-      setState(() {
-        _selectedDateRange = picked;
-      });
-    }
-  }
-
-  bool _matchDate(DateTime txDate) {
-    if (_selectedDateRange != null) {
-      return txDate.isAfter(_selectedDateRange!.start.subtract(const Duration(days: 1))) &&
-          txDate.isBefore(_selectedDateRange!.end.add(const Duration(days: 1)));
-    }
-
-    final now = DateTime.now();
-    if (_selectedFilter == 'Jour') {
-      return txDate.year == now.year && txDate.month == now.month && txDate.day == now.day;
-    } else if (_selectedFilter == 'Mois') {
-      return txDate.year == now.year && txDate.month == now.month;
-    } else {
-      return txDate.year == now.year;
-    }
-  }
+  final DateFilterHelper _dateFilterHelper = DateFilterHelper();
 
   @override
   Widget build(BuildContext context) {
     final transactions = Provider.of<TransactionProvider>(context).transactions;
-    final achats = transactions.where((t) => t.type == 'achat' && _matchDate(t.date)).toList();
-    final ventes = transactions.where((t) => t.type == 'vente' && _matchDate(t.date)).toList();
+    final achats = transactions.where((t) => t.type == 'achat' && _dateFilterHelper.matchDate(t.date)).toList();
+    final ventes = transactions.where((t) => t.type == 'vente' && _dateFilterHelper.matchDate(t.date)).toList();
 
     final totalAchats = achats.fold(0.0, (sum, t) => sum + t.total);
     final totalVentes = ventes.fold(0.0, (sum, t) => sum + t.total);
@@ -68,18 +31,22 @@ class _ComptabiliteScreenState extends State<ComptabiliteScreen> {
         title: const Text('Comptabilité'),
         actions: [
           DropdownButton<String>(
-            value: _selectedFilter,
+            value: _dateFilterHelper.selectedFilter,
             onChanged: (val) {
               setState(() {
-                _selectedFilter = val!;
-                _selectedDateRange = null; // Réinitialiser la plage si on change le filtre
+                _dateFilterHelper.updateFilter(val!);
               });
             },
-            items: _filters.map((f) => DropdownMenuItem(value: f, child: Text(f))).toList(),
+            items: _dateFilterHelper.filters
+                .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                .toList(),
           ),
           IconButton(
             icon: const Icon(Icons.calendar_today),
-            onPressed: _selectDateRange,
+            onPressed: () async {
+              await _dateFilterHelper.pickDateRange(context);
+              setState(() {}); // Rafraîchit après sélection
+            },
           ),
         ],
       ),
@@ -87,11 +54,11 @@ class _ComptabiliteScreenState extends State<ComptabiliteScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            if (_selectedDateRange != null)
+            if (_dateFilterHelper.selectedDateRange != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  'Filtré du ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.start)} au ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.end)}',
+                  'Filtré du ${DateFormat('dd/MM/yyyy').format(_dateFilterHelper.selectedDateRange!.start)} au ${DateFormat('dd/MM/yyyy').format(_dateFilterHelper.selectedDateRange!.end)}',
                   style: const TextStyle(fontStyle: FontStyle.italic),
                 ),
               ),

@@ -6,6 +6,7 @@ import 'add_client_screen.dart';
 import 'edit_client_screen.dart';
 import 'client_detail_screen.dart';
 import '../widgets/custom_search_bar.dart';
+import '../widgets/paginated_list.dart'; // ✅ N'oublie pas d'importer
 
 class ClientListScreen extends StatefulWidget {
   final String? highlightedClientId;
@@ -22,9 +23,6 @@ class _ClientListScreenState extends State<ClientListScreen> {
   String _selectedFilter = 'Nom';
   String _searchText = '';
 
-  int _currentPage = 1;
-  static const int _itemsPerPage = 10;
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -35,7 +33,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
   Widget build(BuildContext context) {
     final clients = Provider.of<ClientProvider>(context).clients;
 
-    // Filtrage
+    // 🔍 Filtrage des clients
     final filteredClients = clients.where((c) {
       final search = _searchText.toLowerCase();
       if (_selectedFilter == 'Nom') {
@@ -46,15 +44,9 @@ class _ClientListScreenState extends State<ClientListScreen> {
       return true;
     }).toList();
 
-    final totalPages = (filteredClients.length / _itemsPerPage).ceil();
-    final paginatedClients = filteredClients
-        .skip((_currentPage - 1) * _itemsPerPage)
-        .take(_itemsPerPage)
-        .toList();
+    // Calcul des totaux
     final totalSolde = clients.fold(0.0, (sum, c) => sum + c.solde);
     final totalClients = clients.length;
-
-
 
     return Scaffold(
       appBar: AppBar(
@@ -66,13 +58,11 @@ class _ClientListScreenState extends State<ClientListScreen> {
           onSearchChanged: (value) {
             setState(() {
               _searchText = value;
-              _currentPage = 1;
             });
           },
           onFilterChanged: (value) {
             setState(() {
               _selectedFilter = value;
-              _currentPage = 1;
             });
           },
           hintText: 'Rechercher par nom ou téléphone...',
@@ -104,15 +94,14 @@ class _ClientListScreenState extends State<ClientListScreen> {
             ),
         ],
       ),
-      body: filteredClients.isEmpty
-          ? const Center(child: Text('Aucun client trouvé.'))
-          : Column(
+      body: Column(
         children: [
+          // ✅ PaginatedList ici
           Expanded(
-            child: ListView.builder(
-              itemCount: paginatedClients.length,
-              itemBuilder: (context, index) {
-                final c = paginatedClients[index];
+            child: PaginatedList(
+              items: filteredClients,
+              itemsPerPage: 50, // ✅ Maximum 50 clients par page
+              itemBuilder: (context, c) {
                 final isHighlighted = c.id == widget.highlightedClientId;
 
                 return Card(
@@ -129,7 +118,9 @@ class _ClientListScreenState extends State<ClientListScreen> {
                           : const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      'Solde : ${c.solde.toStringAsFixed(2)} HTG\n${c.telephone ?? 'Pas de téléphone'}',
+                      'Balance : ${c.solde.toStringAsFixed(2)} HTG\n'
+                          'Dépôt d\'avance : ${(c.depot ?? 0.0).toStringAsFixed(2)} HTG\n'
+                          '${c.telephone ?? 'Pas de téléphone'}',
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -187,6 +178,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
             ),
           ),
 
+          // ✅ Totaux en bas
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -199,7 +191,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    'Total soldes : ${totalSolde.toStringAsFixed(2)} HTG',
+                    'Total Balance : ${totalSolde.toStringAsFixed(2)} HTG',
                     textAlign: TextAlign.right,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
                   ),
@@ -207,56 +199,6 @@ class _ClientListScreenState extends State<ClientListScreen> {
               ],
             ),
           ),
-
-          if (totalPages > 1)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: _currentPage > 1
-                        ? () {
-                      setState(() {
-                        _currentPage--;
-                      });
-                    }
-                        : null,
-                  ),
-                  ...List.generate(totalPages, (index) {
-                    final page = index + 1;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _currentPage == page ? Colors.blue : Colors.grey[300],
-                          foregroundColor: _currentPage == page ? Colors.white : Colors.black,
-                          minimumSize: const Size(36, 36),
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _currentPage = page;
-                          });
-                        },
-                        child: Text('$page'),
-                      ),
-                    );
-                  }),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed: _currentPage < totalPages
-                        ? () {
-                      setState(() {
-                        _currentPage++;
-                      });
-                    }
-                        : null,
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );

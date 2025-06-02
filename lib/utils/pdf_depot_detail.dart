@@ -1,10 +1,10 @@
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
-import '../models/client.dart';
+import '../models/depot.dart';
 
-class PDFClientSolde {
-  static Future<void> generateSoldePdf(Client client) async {
+class PDFDepotDetail {
+  static Future<void> generateDepotPdf(Depot d, String clientNom) async {
     final pdf = pw.Document();
     final logo = await imageFromAssetBundle('assets/logo.jpg');
 
@@ -19,18 +19,15 @@ class PDFClientSolde {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Fiche Client', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Détail du Dépôt d\'avance', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(width: 20),
                   pw.Image(logo, width: 100),
                 ],
               ),
-              pw.SizedBox(height: 10),
-              pw.Text('Nom : ${client.nom}'),
-              pw.Text('Téléphone : ${client.telephone ?? 'N/A'}'),
-              pw.Text('Balance : ${client.solde.toStringAsFixed(2)} HTG'),
-              pw.Text('Depot d\'avance : ${(client.depot ?? 0.0).toStringAsFixed(2)} HTG'),
-              pw.SizedBox(height: 20),
-              pw.Text('Merci d’avoir choisi notre service.', style: pw.TextStyle(fontStyle: pw.FontStyle.italic)),
+               pw.SizedBox(height: 10),
+              pw.Text('Client : $clientNom'),
+              pw.Text('Montant : ${d.montant.toStringAsFixed(2)} HTG'),
+              pw.Text('Date : ${d.date}'),
             ],
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lea_store_office/providers/client_provider.dart';
+import 'package:lea_store_office/providers/depot_provider.dart';
 import 'package:lea_store_office/providers/panier_provider.dart';
 import 'package:lea_store_office/providers/product_provider.dart';
 import 'package:lea_store_office/providers/transaction_provider.dart';
@@ -21,7 +22,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => PanierProvider()),
         ChangeNotifierProvider(create: (_) => VersementProvider()),
+        ChangeNotifierProvider(create: (_) => DepotProvider()),
       ],
+
       child: const MyApp(),
     ),
   );

@@ -15,7 +15,7 @@ class ClientProvider extends ChangeNotifier {
       nom: nom,
       telephone: telephone,
       imagePath: imagePath,
-      solde: 0,
+      solde: 0,//balance
     );
 
     _clientBox.put(nouveauClient.id, nouveauClient);
@@ -71,5 +71,15 @@ class ClientProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void ajouterDepot(String clientId, double montant) {
+    final client = _clientBox.get(clientId);
+    if (client != null) {
+      client.depot = (client.depot ?? 0) + montant;
+      client.save();
+      notifyListeners();
+    }
+  }
+
 
 }

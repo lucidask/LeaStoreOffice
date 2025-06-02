@@ -25,7 +25,9 @@ class TransactionDetailScreen extends StatelessWidget {
     final isVente = transaction.type == 'vente';
     final formattedDate = DateFormat('dd/MM/yyyy  HH:mm').format(transaction.date);
     final factureId = DateFormat('yyMMddHHmmssSSS').format(transaction.date);
-
+    final double versementFinal = transaction.versement ?? 0.0;
+    final double depotFinal = transaction.depotUtilise ?? 0.0;
+    final balance = (transaction.total - versementFinal - depotFinal).clamp(0.0, double.infinity);
 
     return Scaffold(
       appBar: AppBar(
@@ -42,6 +44,8 @@ class TransactionDetailScreen extends StatelessWidget {
                   date: formattedDate,
                   modePaiement: transaction.isCredit ? 'Crédit' : 'Comptant',
                   produits: transaction.produits,
+                  versement:versementFinal,
+                  depotUtilise: transaction.depotUtilise ?? 0.0,
                 );
               },
             ),
@@ -137,40 +141,71 @@ class TransactionDetailScreen extends StatelessWidget {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
+            const Divider(height: 30),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (isVente) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Versement : ${versementFinal.toStringAsFixed(2)} HTG',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    if (depotFinal > 0.01)
+                      Text(
+                        'Dépôt utilisé : ${depotFinal.toStringAsFixed(2)} HTG',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    Text(
+                      'Balance : ${balance.toStringAsFixed(2)} HTG',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             const SizedBox(height: 10),
-            if(isVente)
-            ElevatedButton.icon(
-              onPressed: () {
-                Provider.of<PanierProvider>(context, listen: false).clearPanier();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const VenteTransactionScreen()),
-                );
-              },
-              icon: const Icon(Icons.add_shopping_cart),
-              label: const Text('Nouvelle vente'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.lightBlue,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            if (isVente)
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Provider.of<PanierProvider>(context, listen: false).clearPanier();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const VenteTransactionScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.add_shopping_cart),
+                  label: const Text('Nouvelle vente'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlue,
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
               ),
-            ),
+
+
             if (!isVente)
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AchatTransactionScreen()),
-                );
-              },
-              icon: const Icon(Icons.add_shopping_cart),
-              label: const Text('Nouvel Achat'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.lightBlue,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                     Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AchatTransactionScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.add_shopping_cart),
+                  label: const Text('Nouvel Achat'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlue,
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
               ),
-            ),
           ],
         ),
       ),
