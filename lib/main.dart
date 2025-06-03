@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lea_store_office/providers/achat_provider.dart';
 import 'package:lea_store_office/providers/client_provider.dart';
 import 'package:lea_store_office/providers/depot_provider.dart';
 import 'package:lea_store_office/providers/panier_provider.dart';
 import 'package:lea_store_office/providers/product_provider.dart';
+import 'package:lea_store_office/providers/settings_provider.dart';
 import 'package:lea_store_office/providers/transaction_provider.dart';
 import 'package:lea_store_office/providers/versement_provider.dart';
 import 'package:provider/provider.dart';
@@ -12,7 +14,9 @@ import 'my_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await HiveService.initHive(); // Initialise Hive avant tout
+  await HiveService.initHive();
+  final settings = HiveService.settingsBox;
+  final isLocked = settings.get('lockHome', defaultValue: false);
 
   runApp(
     MultiProvider(
@@ -23,9 +27,11 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PanierProvider()),
         ChangeNotifierProvider(create: (_) => VersementProvider()),
         ChangeNotifierProvider(create: (_) => DepotProvider()),
+        ChangeNotifierProvider(create: (_) => AchatProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
 
-      child: const MyApp(),
+      child: MyApp(isLocked: isLocked),
     ),
   );
 }

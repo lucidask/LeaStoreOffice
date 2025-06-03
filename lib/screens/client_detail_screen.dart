@@ -167,6 +167,8 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
             ),
             const SizedBox(height: 20),
             // Onglets
+            // 🔥 Ajoute le tri directement avant l'affichage des listes
+
             Expanded(
               child: DefaultTabController(
                 length: 2,
@@ -191,7 +193,8 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
                                   tooltip: 'Exporter PDF',
                                   onPressed: () {
                                     final versements = Provider.of<VersementProvider>(context, listen: false)
-                                        .getVersementsParClient(client.id);
+                                        .getVersementsParClient(client.id)
+                                      ..sort((a, b) => b.date.compareTo(a.date)); // ✅ Tri ici
                                     if (versements.isEmpty) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(content: Text('Aucun versement à exporter')),
@@ -205,7 +208,8 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
                               Expanded(
                                 child: Consumer<VersementProvider>(
                                   builder: (context, versementProvider, child) {
-                                    final versements = versementProvider.getVersementsParClient(client.id);
+                                    final versements = versementProvider.getVersementsParClient(client.id)
+                                      ..sort((a, b) => b.date.compareTo(a.date)); // ✅ Tri ici
                                     if (versements.isEmpty) {
                                       return const Center(child: Text('Aucun versement enregistré.'));
                                     }
@@ -224,7 +228,7 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
                                               IconButton(
                                                 icon: const Icon(Icons.picture_as_pdf, color: Colors.blue),
                                                 onPressed: () {
-                                                  PDFVersementDetail.generateVersementPdf(v, client.nom,client.solde);
+                                                  PDFVersementDetail.generateVersementPdf(v, client.nom, client.solde);
                                                 },
                                               ),
                                               IconButton(
@@ -274,7 +278,8 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
                                   tooltip: 'Exporter PDF',
                                   onPressed: () {
                                     final depots = Provider.of<DepotProvider>(context, listen: false)
-                                        .getDepotsParClient(client.id);
+                                        .getDepotsParClient(client.id)
+                                      ..sort((a, b) => b.date.compareTo(a.date)); // ✅ Tri ici
                                     if (depots.isEmpty) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(content: Text('Aucun dépôt à exporter')),
@@ -288,7 +293,8 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
                               Expanded(
                                 child: Consumer<DepotProvider>(
                                   builder: (context, depotProvider, child) {
-                                    final depots = depotProvider.getDepotsParClient(client.id);
+                                    final depots = depotProvider.getDepotsParClient(client.id)
+                                      ..sort((a, b) => b.date.compareTo(a.date)); // ✅ Tri ici
                                     if (depots.isEmpty) {
                                       return const Center(child: Text('Aucun dépôt enregistré.'));
                                     }
@@ -352,7 +358,7 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
                   ],
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

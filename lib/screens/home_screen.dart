@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:lea_store_office/screens/settings_screen.dart';
 import 'add_product_screen.dart';
 import 'add_client_screen.dart';
 import 'add_transaction_screen.dart';
+import 'inventaire_screen.dart';
 import 'transaction_list_screen.dart';
 import 'product_list_screen.dart';
 import 'client_list_screen.dart';
@@ -28,8 +30,12 @@ class HomeScreen extends StatelessWidget {
             _buildTile(context, 'Liste Transactions', Icons.list, const TransactionListScreen()),
             _buildTile(context, 'Liste Produits', Icons.inventory, const ProductListScreen()),
             _buildTile(context, 'Liste Clients', Icons.people, const ClientListScreen()),
-            _buildTile(context, 'Comptabilité', Icons.account_balance_wallet, const ComptabiliteScreen()), // 🎯 Bouton ajouté
+            _buildTile(context, 'Comptabilité', Icons.account_balance_wallet, const ComptabiliteScreen()),
+            _buildTile(context, 'Inventaire', Icons.analytics, const InventaireScreen()), // 🎯 Ajouté ici !
+            _buildTile(context, 'Réglages', Icons.settings, const SettingsScreen()),
+
           ],
+
         ),
       ),
     );

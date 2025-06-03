@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'package:lea_store_office/screens/lock_screen.dart';
+import 'package:lea_store_office/screens/home_screen.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLocked;
+
+  const MyApp({super.key, required this.isLocked});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const HomeScreen(),
+      title: 'Lea Store Office',
+      theme: ThemeData.light(), // À adapter avec tes thèmes
+      initialRoute: isLocked ? '/lock' : '/home',
+      routes: {
+        '/lock': (_) => const LockScreen(),
+        '/home': (_) => const HomeScreen(),
+      },
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:lea_store_office/screens/transaction_detail_screen.dart';
 import 'package:provider/provider.dart';
 import '../models/produit.dart';
 import '../models/transaction_item.dart';
+import '../providers/achat_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/transaction_provider.dart';
 
@@ -67,6 +68,8 @@ class _AchatTransactionScreenState extends State<AchatTransactionScreen> {
       return;
     }
 
+    final achatProvider = Provider.of<AchatProvider>(context, listen: false);
+
     final newTransaction = Provider.of<TransactionProvider>(context, listen: false).ajouterTransaction(
       type: 'achat',
       clientId: null,
@@ -74,6 +77,15 @@ class _AchatTransactionScreenState extends State<AchatTransactionScreen> {
       produits: _items,
       fournisseur: _fournisseurController.text.isNotEmpty ? _fournisseurController.text : null,
     );
+
+    // ✅ Enregistrer chaque produit dans la table Achat
+    for (var item in _items) {
+      achatProvider.ajouterAchat(
+        item.produitId,
+        item.prixUnitaire,
+        item.quantite,
+      );
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Achat enregistré avec succès !')),

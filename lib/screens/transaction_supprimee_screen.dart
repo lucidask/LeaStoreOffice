@@ -11,8 +11,9 @@ class TransactionSupprimeeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final transactionsSupprimees =
-        Provider.of<TransactionProvider>(context).transactionsSupprimees;
+    final transactionsSupprimees = Provider.of<TransactionProvider>(context)
+        .transactionsSupprimees
+      ..sort((a, b) => b.dateSuppression.compareTo(a.dateSuppression)); // ✅ Tri du plus récent au plus ancien
 
     return Scaffold(
       appBar: AppBar(
