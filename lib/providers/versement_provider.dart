@@ -5,11 +5,18 @@ import 'package:uuid/uuid.dart';
 
 class VersementProvider with ChangeNotifier {
   final _versementBox = HiveService.versementsBox;
+  List<Versement> _versements = [];
 
-  List<Versement> get versements => _versementBox.values.toList();
+  List<Versement> get versements => _versements;
+
+  // ✅ Recharge la liste depuis Hive
+  void loadVersements() {
+    _versements = _versementBox.values.toList();
+    notifyListeners();
+  }
 
   List<Versement> getVersementsParClient(String clientId) {
-    return versements.where((v) => v.clientId == clientId).toList();
+    return _versements.where((v) => v.clientId == clientId).toList();
   }
 
   void ajouterVersement({
@@ -24,19 +31,17 @@ class VersementProvider with ChangeNotifier {
     );
 
     _versementBox.put(versement.id, versement);
-    notifyListeners();
+    loadVersements();
   }
 
   void supprimerVersement(String id) {
     _versementBox.delete(id);
-    notifyListeners();
+    loadVersements();
   }
 
   Versement? getDernierVersementParClient(String clientId) {
-    final liste = versements.where((v) => v.clientId == clientId).toList()
+    final liste = _versements.where((v) => v.clientId == clientId).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
     return liste.isNotEmpty ? liste.first : null;
   }
-
-
 }

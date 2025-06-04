@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:lea_store_office/screens/restore_backup_screen.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/settings_provider.dart';
+import '../services/json_export_service.dart';
+import '../utils/duration_parser.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -159,22 +161,105 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
 
           const Divider(),
-
           const Text('Sauvegarde et Restauration', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ListTile(
             title: const Text('Sauvegarder les données'),
-            trailing: Icon(Icons.backup),
-            onTap: () {
-              // Action à ajouter plus tard
+            trailing: const Icon(Icons.backup),
+            onTap: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              try {
+               final filePath = await JsonExportService.exportDataToJson();
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(content: Text('Fichier exporté dans: \n$filePath'),
+                  duration: Duration(seconds: 6),),
+                );
+              } catch (e) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(content: Text('Erreur lors de l\'export : $e')),
+                );
+              }
             },
           ),
           ListTile(
             title: const Text('Restaurer depuis un fichier'),
-            trailing: const Icon(Icons.restore),
+            trailing: const Icon(Icons.list_alt),
             onTap: () {
-              // Action à ajouter plus tard
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RestoreBackupScreen()),
+              );
             },
           ),
+
+          const Text('Sauvegarde automatique', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Consumer<SettingsProvider>(
+            builder: (context, settings, _) => SwitchListTile(
+              title: const Text('Activer la sauvegarde automatique'),
+              value: settings.autoBackupEnabled,
+              onChanged: (val) {
+                settings.setAutoBackupEnabled(val);
+              },
+            ),
+          ),
+          Consumer<SettingsProvider>(
+            builder: (context, settings, _) => ListTile(
+              title: const Text('Intervalle de sauvegarde automatique'),
+              subtitle: Text(settings.backupIntervalRaw),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  final controller = TextEditingController(text: settings.backupIntervalRaw);
+                  await showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Définir l\'intervalle (ex : 5h 10m 30s)'),
+                      content: TextField(
+                        controller: controller,
+                        keyboardType: TextInputType.text,
+                        decoration: const InputDecoration(
+                          hintText: 'Exemple : 6h ou 1h 30m ou 10m 45s',
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Annuler'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            final input = controller.text.trim();
+                            try {
+                              final duration = DurationParser.parse(input);
+                              if (duration.inSeconds >= 60) {
+                                settings.setBackupIntervalRaw(input);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('✅ Intervalle enregistré')),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('⛔ Minimum : 1 minute')),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('❌ Format invalide')),
+                              );
+                            }
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Valider'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+
+          const Divider(),
+          const Text('Réinitialisation', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ListTile(
             title: const Text('Réinitialiser l\'inventaire'),
             trailing: const Icon(Icons.delete_forever, color: Colors.red),

@@ -13,7 +13,6 @@ class TransactionItem extends HiveObject {
   @HiveField(2)
   final String? produitImagePath;
 
-
   @HiveField(3)
   int quantite;
 
@@ -29,4 +28,26 @@ class TransactionItem extends HiveObject {
   });
 
   double get sousTotal => prixUnitaire * quantite;
+
+  // ✅ toJson
+  Map<String, dynamic> toJson() {
+    return {
+      'produitId': produitId,
+      'produitNom': produitNom,
+      'produitImagePath': produitImagePath,
+      'quantite': quantite,
+      'prixUnitaire': prixUnitaire,
+    };
+  }
+
+  // ✅ fromJson
+  factory TransactionItem.fromJson(Map<String, dynamic> json) {
+    return TransactionItem(
+      produitId: json['produitId'],
+      produitNom: json['produitNom'],
+      produitImagePath: json['produitImagePath'],
+      quantite: json['quantite'],
+      prixUnitaire: (json['prixUnitaire'] as num).toDouble(),
+    );
+  }
 }
