@@ -5,11 +5,18 @@ import '../database/hive_service.dart';
 
 class DepotProvider with ChangeNotifier {
   final _depotBox = HiveService.depotsBox;
+  List<Depot> _depots = [];
 
-  List<Depot> get depots => _depotBox.values.toList();
+  List<Depot> get depots => _depots;
+
+  // ✅ Nouvelle méthode pour recharger tous les dépôts depuis Hive
+  void loadDepots() {
+    _depots = _depotBox.values.toList();
+    notifyListeners();
+  }
 
   List<Depot> getDepotsParClient(String clientId) {
-    return depots.where((d) => d.clientId == clientId).toList();
+    return _depots.where((d) => d.clientId == clientId).toList();
   }
 
   void ajouterDepot({
@@ -24,11 +31,11 @@ class DepotProvider with ChangeNotifier {
     );
 
     _depotBox.put(depot.id, depot);
-    notifyListeners();
+    loadDepots(); // 🔄 Mise à jour automatique
   }
 
   void supprimerDepot(String id) {
     _depotBox.delete(id);
-    notifyListeners();
+    loadDepots(); // 🔄 Mise à jour automatique
   }
 }

@@ -16,7 +16,6 @@ class TransactionProvider extends ChangeNotifier {
   List<TransactionSupprimee> get transactionsSupprimees => _transactionSupprimeeBox.values.toList();
 
 
-
   TransactionProvider() {
     loadTransactions();
   }

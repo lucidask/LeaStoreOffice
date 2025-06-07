@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:lea_store_office/screens/restore_backup_screen.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/settings_provider.dart';
+import '../services/auto_backup_service.dart';
+import '../services/google_drive_service.dart';
+import '../services/json_export_service.dart';
+import '../utils/duration_parser.dart';
+import '../utils/google_drive_backup_helper.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,6 +24,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? signaturePath;
   bool lockHome = false;
   String? backupPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _attemptSilentSignIn();
+  }
+
+  void _attemptSilentSignIn() async {
+    await GoogleDriveService.trySilentSignIn();
+    setState(() {}); // Rafraîchit l'écran pour que le bouton logout apparaisse si connecté
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,61 +96,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const Divider(),
-
-          const Text('PDF et Impression', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          SwitchListTile(
-            title: const Text('Inclure logo dans PDF'),
-            value: includeLogo,
-            onChanged: (val) => setState(() => includeLogo = val),
-          ),
-          ListTile(
-            title: const Text('Texte de remerciement'),
-            subtitle: Text(thankYouText),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () async {
-                final controller = TextEditingController(text: thankYouText);
-                await showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Modifier texte de remerciement'),
-                    content: TextField(
-                      controller: controller,
-                      maxLines: 2,
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            thankYouText = controller.text;
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Valider'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Ajouter signature/cachet dans PDF'),
-            subtitle: Text(signaturePath ?? 'Aucun fichier sélectionné'),
-            trailing: IconButton(
-              icon: const Icon(Icons.upload),
-              onPressed: () async {
-                final result = await FilePicker.platform.pickFiles();
-                if (result != null) {
-                  setState(() {
-                    signaturePath = result.files.single.path;
-                  });
-                }
-              },
-            ),
-          ),
-          const Divider(),
-
           const Text('Sécurité', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           SwitchListTile(
             title: const Text('Mot de passe pour accéder à l\'accueil'),
@@ -159,22 +119,203 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
 
           const Divider(),
-
           const Text('Sauvegarde et Restauration', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          ListTile(
-            title: const Text('Sauvegarder les données'),
-            trailing: Icon(Icons.backup),
-            onTap: () {
-              // Action à ajouter plus tard
-            },
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 🟦 Colonne Sauvegarde
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.backup),
+                      label: const Text('Backup local'),
+                      onPressed: () async {
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
+                        try {
+                          final filePath = await JsonExportService.exportDataToJson();
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(
+                              content: Text('Fichier exporté dans:\n$filePath'),
+                              duration: const Duration(seconds: 6),
+                            ),
+                          );
+                        } catch (e) {
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(content: Text('Erreur lors de l\'export : $e')),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.cloud_upload),
+                      label: const Text('Backup Drive'),
+                      onPressed: () async {
+                        final scaffold = ScaffoldMessenger.of(context);
+                        try {
+                          await GoogleDriveBackupHelper.uploadBackup();
+                          scaffold.showSnackBar(
+                            const SnackBar(content: Text('✅ Sauvegarde envoyée sur Google Drive')),
+                          );
+                          setState(() {}); // 🔄 rafraîchir pour bouton logout
+                        } catch (e) {
+                          scaffold.showSnackBar(
+                            SnackBar(content: Text('❌ Erreur : $e')),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              // 🟩 Colonne Restauration
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.restore),
+                      label: const Text('Restaurer local'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RestoreBackupScreen(source: 'local'),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.folder_open),
+                      label: const Text('Restaurer Drive'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RestoreBackupScreen(source: 'drive'),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          ListTile(
-            title: const Text('Restaurer depuis un fichier'),
-            trailing: const Icon(Icons.restore),
-            onTap: () {
-              // Action à ajouter plus tard
-            },
+          if (GoogleDriveService.isSignedIn)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.logout),
+                label: const Text('Se déconnecter de Google Drive'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+                onPressed: () async {
+                  await GoogleDriveService.logout();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Déconnecté de Google Drive')),
+                  );
+                  setState(() {}); // 🔄 Refresh UI
+                },
+              ),
+            ),
+
+
+          const Text('Sauvegarde automatique', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Consumer<SettingsProvider>(
+            builder: (context, settings, _) => SwitchListTile(
+              title: const Text('Sauvegarde automatique Local'),
+              value: settings.autoBackupEnabled,
+              onChanged: (val) {
+                settings.setAutoBackupEnabled(val);
+                final duration = DurationParser.parse(settings.backupIntervalRaw);
+                if (val) {
+                  AutoBackupService.startWithDuration(context, duration);
+                } else {
+                  AutoBackupService.stop();
+                }
+              },
+            ),
           ),
+          Consumer<SettingsProvider>(
+            builder: (context, settings, _) => SwitchListTile(
+              title: const Text('Sauvegarde automatique Drive'),
+              value: settings.autoDriveBackupEnabled,
+              onChanged: (val) {
+                settings.setAutoDriveBackupEnabled(val);
+              },
+            ),
+          ),
+          Consumer<SettingsProvider>(
+            builder: (context, settings, _) => ListTile(
+              title: const Text('Intervalle de sauvegarde automatique'),
+              subtitle: Text(settings.backupIntervalRaw),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  final controller = TextEditingController(text: settings.backupIntervalRaw);
+                  await showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Définir l\'intervalle (ex : 5h10m30s)'),
+                      content: TextField(
+                        controller: controller,
+                        keyboardType: TextInputType.text,
+                        decoration: const InputDecoration(
+                          hintText: 'Exemple : 6h ou 1h30m ou 10m45s',
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Annuler'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            final input = controller.text.trim();
+                            try {
+                              final duration = DurationParser.parse(input);
+                              if (duration.inSeconds >= 60) {
+                                settings.setBackupIntervalRaw(input);
+                                if (settings.autoBackupEnabled) {
+                                  AutoBackupService.startWithDuration(context, duration);
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('✅ Intervalle enregistré')),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('⛔ Minimum : 1 minute')),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('❌ Format invalide')),
+                              );
+                            }
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Valider'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          const Divider(),
+          const Text('Réinitialisation', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ListTile(
             title: const Text('Réinitialiser l\'inventaire'),
             trailing: const Icon(Icons.delete_forever, color: Colors.red),
