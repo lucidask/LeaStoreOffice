@@ -7,7 +7,12 @@ import 'package:lea_store_office/providers/product_provider.dart';
 import 'package:lea_store_office/providers/settings_provider.dart';
 import 'package:lea_store_office/providers/transaction_provider.dart';
 import 'package:lea_store_office/providers/versement_provider.dart';
+<<<<<<< HEAD
 import 'package:lea_store_office/database/hive_service.dart';
+=======
+import 'package:lea_store_office/services/auto_backup_service.dart';
+import 'package:lea_store_office/utils/duration_parser.dart';
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 import 'package:provider/provider.dart';
 import 'my_app.dart';
 
@@ -15,6 +20,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HiveService.initHive();
   final settings = HiveService.settingsBox;
+  final bool autoBackupEnabled = settings.get('autoBackupEnabled', defaultValue: false);
+  final String rawInterval = settings.get('backupIntervalRaw', defaultValue: '6h');
+  if (autoBackupEnabled) {
+    final duration = DurationParser.parse(rawInterval);
+    AutoBackupService.startWithDuration(duration);
+  }
   final isLocked = settings.get('lockHome', defaultValue: false);
 
   runApp(
@@ -58,3 +69,4 @@ void main() async {
     ),
   );
 }
+

@@ -25,12 +25,15 @@ dependencies:
   file_picker: ^10.1.2
   permission_handler: ^11.2.0
   file_selector: ^1.0.3
+<<<<<<< HEAD
   google_sign_in: ^6.1.5
   googleapis: ^11.4.0
   googleapis_auth: ^1.4.1
   mime: ^1.0.4
   http: ^1.4.0
 
+=======
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 
 
 dev_dependencies:

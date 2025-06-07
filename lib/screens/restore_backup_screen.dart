@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+<<<<<<< HEAD
 import 'package:googleapis/drive/v3.dart' as drive;
 import '../services/json_import_service.dart';
 import '../services/google_drive_service.dart';
@@ -9,42 +10,78 @@ import '../utils/app_data_reloader.dart';
 class RestoreBackupScreen extends StatefulWidget {
   final String source; // 'local' ou 'drive'
   const RestoreBackupScreen({super.key, required this.source});
+=======
+import '../services/json_import_service.dart';
+import '../utils/app_data_reloader.dart';
+
+class RestoreBackupScreen extends StatefulWidget {
+  const RestoreBackupScreen({super.key});
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 
   @override
   State<RestoreBackupScreen> createState() => _RestoreBackupScreenState();
 }
 
 class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
+<<<<<<< HEAD
   List<File> localBackups = [];
   List<drive.File> driveBackups = [];
   bool isLoading = true;
   bool selectionMode = false;
   Set<String> selectedPaths = {}; // for local
   Set<String> selectedDriveIds = {}; // for drive
+=======
+  List<File> backupFiles = [];
+  bool selectionMode = false;
+  Set<String> selectedFilePaths = {};
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     widget.source == 'local' ? _loadLocalBackups() : _loadDriveBackups();
   }
 
   Future<void> _loadLocalBackups() async {
+=======
+    _loadBackupFiles();
+  }
+
+  Future<void> _loadBackupFiles() async {
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
     final dir = await getExternalStorageDirectory();
     final backupDir = Directory('${dir!.path}/backup');
 
     if (await backupDir.exists()) {
       final now = DateTime.now();
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
       final files = backupDir
           .listSync()
           .whereType<File>()
           .where((f) => f.path.endsWith('.json'))
           .toList();
 
+<<<<<<< HEAD
       for (var file in files) {
         final modified = file.lastModifiedSync();
         if (now.difference(modified).inDays > 30) await file.delete();
       }
 
+=======
+      // 🔥 Supprimer ceux qui datent de plus de 30 jours
+      for (var file in files) {
+        final lastModified = file.lastModifiedSync();
+        if (now.difference(lastModified).inDays > 30) {
+          await file.delete();
+        }
+      }
+
+      // 🔁 Recharger la liste après suppression
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
       final validFiles = backupDir
           .listSync()
           .whereType<File>()
@@ -53,12 +90,17 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
         ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
 
       setState(() {
+<<<<<<< HEAD
         localBackups = validFiles;
         isLoading = false;
+=======
+        backupFiles = validFiles;
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
       });
     }
   }
 
+<<<<<<< HEAD
   Future<void> _loadDriveBackups() async {
     final files = await GoogleDriveService.listBackupFiles();
     setState(() {
@@ -66,6 +108,8 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
       isLoading = false;
     });
   }
+=======
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 
   Future<String?> _askRestoreMode(BuildContext context) async {
     return showDialog<String>(
@@ -79,14 +123,30 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
               '• Fusionner : Additionne les stocks et garde les champs locaux',
         ),
         actions: [
+<<<<<<< HEAD
           TextButton(onPressed: () => Navigator.pop(context, 'merge'), child: const Text('Fusionner')),
           TextButton(onPressed: () => Navigator.pop(context, 'replace'), child: const Text('Remplacer')),
           TextButton(onPressed: () => Navigator.pop(context, 'erase'), child: const Text('Écraser tout')),
+=======
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'merge'),
+            child: const Text('Fusionner'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'replace'),
+            child: const Text('Remplacer'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'erase'),
+            child: const Text('Écraser tout'),
+          ),
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
         ],
       ),
     );
   }
 
+<<<<<<< HEAD
   Future<void> _restoreLocal(File file) async {
     final mode = await _askRestoreMode(context);
     if (mode == null) return;
@@ -261,12 +321,30 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
             },
           );
         },
+=======
+  Future<void> _restore(File file) async {
+    final scaffold = ScaffoldMessenger.of(context);
+    try {
+      final mode = await _askRestoreMode(context);
+      if (mode == null) return;
+
+      await JsonImportService.importFromFile(file, mode: mode);
+      AppDataReloader.refreshAll(context);
+
+      scaffold.showSnackBar(
+        const SnackBar(content: Text('✅ Données restaurées avec succès')),
+      );
+    } catch (e) {
+      scaffold.showSnackBar(
+        SnackBar(content: Text('❌ Erreur lors de la restauration : $e')),
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final isLocal = widget.source == 'local';
     final selectedCount = isLocal ? selectedPaths.length : selectedDriveIds.length;
 
@@ -275,10 +353,18 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
         title: Text(selectionMode
             ? '$selectedCount sélectionné(s)'
             : 'Restaurer depuis ${isLocal ? 'Local' : 'Google Drive'}'),
+=======
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(selectionMode
+            ? '${selectedFilePaths.length} sélectionné(s)'
+            : 'Restaurer une sauvegarde'),
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
         actions: [
           IconButton(
             icon: Icon(selectionMode ? Icons.close : Icons.delete),
             onPressed: () {
+<<<<<<< HEAD
               setState(() {
                 selectionMode = !selectionMode;
                 if (!selectionMode) {
@@ -286,6 +372,18 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
                   selectedDriveIds.clear();
                 }
               });
+=======
+              if (selectionMode) {
+                setState(() {
+                  selectionMode = false;
+                  selectedFilePaths.clear();
+                });
+              } else {
+                setState(() {
+                  selectionMode = true;
+                });
+              }
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
             },
           ),
           if (selectionMode)
@@ -295,6 +393,7 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
             ),
         ],
       ),
+<<<<<<< HEAD
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : _buildListView(),
@@ -303,9 +402,111 @@ class _RestoreBackupScreenState extends State<RestoreBackupScreen> {
         onPressed: _confirmDeleteSelection,
         icon: const Icon(Icons.delete),
         label: const Text("Supprimer sélection"),
+=======
+      body: backupFiles.isEmpty
+          ? const Center(child: Text('Aucune sauvegarde trouvée.'))
+          : ListView.builder(
+        itemCount: backupFiles.length,
+        itemBuilder: (context, index) {
+          final file = backupFiles[index];
+          final name = file.path.split('/').last;
+          final selected = selectedFilePaths.contains(file.path);
+
+          return ListTile(
+            title: Text(name),
+            trailing: selectionMode
+                ? Checkbox(
+              value: selected,
+              onChanged: (val) {
+                setState(() {
+                  if (val == true) {
+                    selectedFilePaths.add(file.path);
+                  } else {
+                    selectedFilePaths.remove(file.path);
+                    if (selectedFilePaths.isEmpty) {
+                      selectionMode = false;
+                    }
+                  }
+                });
+              },
+            )
+                : const Icon(Icons.restore),
+            selected: selected,
+            selectedTileColor: Colors.red.shade100,
+            onLongPress: () {
+              setState(() {
+                selectionMode = true;
+                selectedFilePaths.add(file.path);
+              });
+            },
+            onTap: () {
+              if (selectionMode) {
+                setState(() {
+                  if (selected) {
+                    selectedFilePaths.remove(file.path);
+                    if (selectedFilePaths.isEmpty) selectionMode = false;
+                  } else {
+                    selectedFilePaths.add(file.path);
+                  }
+                });
+              } else {
+                _restore(file);
+              }
+            },
+          );
+        },
+      ),
+      floatingActionButton: selectionMode && selectedFilePaths.isNotEmpty
+          ? FloatingActionButton.extended(
+        onPressed: _confirmerSuppression,
+        icon: const Icon(Icons.delete),
+        label: const Text('Supprimer sélection'),
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
         backgroundColor: Colors.red,
       )
           : null,
     );
   }
+<<<<<<< HEAD
+=======
+
+  void _toggleSelectAll() {
+    setState(() {
+      if (selectedFilePaths.length == backupFiles.length) {
+        selectedFilePaths.clear();
+      } else {
+        selectedFilePaths = backupFiles.map((f) => f.path).toSet();
+      }
+    });
+  }
+
+  void _confirmerSuppression() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmer la suppression'),
+        content: Text('Supprimer ${selectedFilePaths.length} sauvegarde(s) ?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Supprimer')),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      for (var path in selectedFilePaths) {
+        final f = File(path);
+        if (await f.exists()) await f.delete();
+      }
+      selectedFilePaths.clear();
+      selectionMode = false;
+      await _loadBackupFiles();
+      setState(() {});
+    }
+  }
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 }

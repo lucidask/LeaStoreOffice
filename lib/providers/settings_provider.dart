@@ -6,7 +6,11 @@ class SettingsProvider extends ChangeNotifier {
   String password = '';
   bool autoBackupEnabled = false;
   String backupIntervalRaw = '6h';
+<<<<<<< HEAD
   bool autoDriveBackupEnabled = false;
+=======
+
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 
   final Box settingsBox = Hive.box('settings');
 
@@ -15,7 +19,10 @@ class SettingsProvider extends ChangeNotifier {
     password = settingsBox.get('password', defaultValue: '');
     autoBackupEnabled = settingsBox.get('autoBackupEnabled', defaultValue: false);
     backupIntervalRaw = settingsBox.get('backupIntervalRaw', defaultValue: '6h').toString();
+<<<<<<< HEAD
     autoDriveBackupEnabled = settingsBox.get('autoDriveBackupEnabled', defaultValue: false);
+=======
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
   }
 
   void toggleLock(bool value) {
@@ -42,6 +49,7 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+<<<<<<< HEAD
   void setAutoDriveBackupEnabled(bool value) {
     autoDriveBackupEnabled = value;
     settingsBox.put('autoDriveBackupEnabled', value);
@@ -49,4 +57,6 @@ class SettingsProvider extends ChangeNotifier {
   }
 
 
+=======
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 }

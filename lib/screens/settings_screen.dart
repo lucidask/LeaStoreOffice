@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:lea_store_office/screens/restore_backup_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
@@ -7,6 +8,14 @@ import '../services/google_drive_service.dart';
 import '../services/json_export_service.dart';
 import '../utils/duration_parser.dart';
 import '../utils/google_drive_backup_helper.dart';
+=======
+import 'package:file_picker/file_picker.dart';
+import 'package:lea_store_office/screens/restore_backup_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/settings_provider.dart';
+import '../services/json_export_service.dart';
+import '../utils/duration_parser.dart';
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -120,6 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const Divider(),
           const Text('Sauvegarde et Restauration', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+<<<<<<< HEAD
           const SizedBox(height: 10),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,6 +262,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: settings.autoDriveBackupEnabled,
               onChanged: (val) {
                 settings.setAutoDriveBackupEnabled(val);
+=======
+          ListTile(
+            title: const Text('Sauvegarder les données'),
+            trailing: const Icon(Icons.backup),
+            onTap: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              try {
+               final filePath = await JsonExportService.exportDataToJson();
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(content: Text('Fichier exporté dans: \n$filePath'),
+                  duration: Duration(seconds: 6),),
+                );
+              } catch (e) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(content: Text('Erreur lors de l\'export : $e')),
+                );
+              }
+            },
+          ),
+          ListTile(
+            title: const Text('Restaurer depuis un fichier'),
+            trailing: const Icon(Icons.list_alt),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RestoreBackupScreen()),
+              );
+            },
+          ),
+
+          const Text('Sauvegarde automatique', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Consumer<SettingsProvider>(
+            builder: (context, settings, _) => SwitchListTile(
+              title: const Text('Activer la sauvegarde automatique'),
+              value: settings.autoBackupEnabled,
+              onChanged: (val) {
+                settings.setAutoBackupEnabled(val);
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
               },
             ),
           ),
@@ -266,12 +314,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await showDialog(
                     context: context,
                     builder: (_) => AlertDialog(
+<<<<<<< HEAD
                       title: const Text('Définir l\'intervalle (ex : 5h10m30s)'),
+=======
+                      title: const Text('Définir l\'intervalle (ex : 5h 10m 30s)'),
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
                       content: TextField(
                         controller: controller,
                         keyboardType: TextInputType.text,
                         decoration: const InputDecoration(
+<<<<<<< HEAD
                           hintText: 'Exemple : 6h ou 1h30m ou 10m45s',
+=======
+                          hintText: 'Exemple : 6h ou 1h 30m ou 10m 45s',
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
                         ),
                       ),
                       actions: [
@@ -286,9 +342,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               final duration = DurationParser.parse(input);
                               if (duration.inSeconds >= 60) {
                                 settings.setBackupIntervalRaw(input);
+<<<<<<< HEAD
                                 if (settings.autoBackupEnabled) {
                                   AutoBackupService.startWithDuration(context, duration);
                                 }
+=======
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('✅ Intervalle enregistré')),
                                 );
@@ -314,6 +373,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
           const Divider(),
           const Text('Réinitialisation', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ListTile(

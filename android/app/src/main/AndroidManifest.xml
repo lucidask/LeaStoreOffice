@@ -6,8 +6,11 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+<<<<<<< HEAD
     <uses-permission android:name="android.permission.INTERNET" />
 
+=======
+>>>>>>> 2283ded628918f9e765790a9a7c2222455f4434a
 
     <application
         android:label="Lea Store Office"
