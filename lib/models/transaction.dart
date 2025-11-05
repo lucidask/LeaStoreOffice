@@ -41,8 +41,6 @@ class Transaction extends HiveObject {
   @HiveField(11)
   double? depotUtilise;
 
-
-
   Transaction({
     required this.id,
     required this.type,
@@ -56,7 +54,6 @@ class Transaction extends HiveObject {
     this.clientNom,
     this.versement,
     this.depotUtilise,
-
   });
 
   factory Transaction.dummy() {
@@ -72,15 +69,47 @@ class Transaction extends HiveObject {
       total: 0,
       versement: null,
       depotUtilise: null,
-
     );
   }
 
+  // ✅ toJson
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type,
+      'clientId': clientId,
+      'date': date.toIso8601String(),
+      'isCredit': isCredit,
+      'produits': produits.map((p) => p.toJson()).toList(),
+      'note': note,
+      'total': total,
+      'fournisseur': fournisseur,
+      'clientNom': clientNom,
+      'versement': versement,
+      'depotUtilise': depotUtilise,
+    };
+  }
+
+  // ✅ fromJson
+  factory Transaction.fromJson(Map<String, dynamic> json) {
+    return Transaction(
+      id: json['id'],
+      type: json['type'],
+      clientId: json['clientId'],
+      date: DateTime.parse(json['date']),
+      isCredit: json['isCredit'] ?? false,
+      produits: (json['produits'] as List).map((p) => TransactionItem.fromJson(p)).toList(),
+      note: json['note'],
+      total: (json['total'] as num).toDouble(),
+      fournisseur: json['fournisseur'],
+      clientNom: json['clientNom'],
+      versement: (json['versement'] as num?)?.toDouble(),
+      depotUtilise: (json['depotUtilise'] as num?)?.toDouble(),
+    );
+  }
 
   @override
   String toString() {
     return 'Transaction(id: $id, type: $type, clientId: $clientId, clientNom: $clientNom, fournisseur: $fournisseur, total: $total, produits: $produits, Balance: $versement, depot d\'avance utilisé: $depotUtilise)';
   }
-
-
 }

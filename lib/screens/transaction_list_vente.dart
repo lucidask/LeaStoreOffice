@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../models/client.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/client_provider.dart';
 import '../screens/transaction_detail_screen.dart';
@@ -38,7 +39,14 @@ class _TransactionListVenteState extends State<TransactionListVente> {
     final filteredTransactions = transactions.where((tx) {
       final client = clients.firstWhere(
             (c) => c.id == tx.clientId,
-        orElse: () => clients.firstWhere((c) => c.nom == 'Anonyme'),
+        orElse: () => clients.firstWhere(
+              (c) => c.nom == 'Anonyme',
+          orElse: () => Client(
+            id: 'inconnu',
+            nom: 'Inconnu',
+            solde: 0,
+          ),
+        ),
       );
       final numero = DateFormat('yyMMddHHmmssms').format(tx.date);
       final montant = tx.total.toStringAsFixed(2);
@@ -98,7 +106,14 @@ class _TransactionListVenteState extends State<TransactionListVente> {
             itemBuilder: (context, tx) {
               final client = clients.firstWhere(
                     (c) => c.id == tx.clientId,
-                orElse: () => clients.firstWhere((c) => c.nom == 'Anonyme'),
+                orElse: () => clients.firstWhere(
+                      (c) => c.nom == 'Anonyme',
+                  orElse: () => Client(
+                    id: 'inconnu',
+                    nom: 'Inconnu',
+                    solde: 0,
+                  ),
+                ),
               );
               final numeroTransaction = DateFormat('yyMMddHHmmssms').format(tx.date);
 

@@ -1,6 +1,9 @@
+import 'dart:io';
+import 'package:hive/hive.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import '../models/produit.dart';
 import '../models/transaction_item.dart';
 
 class PDFInvoice {
@@ -45,15 +48,17 @@ class PDFInvoice {
                 pw.Table(
                   border: pw.TableBorder.all(),
                   columnWidths: {
-                    0: const pw.FlexColumnWidth(3),
-                    1: const pw.FlexColumnWidth(1),
-                    2: const pw.FlexColumnWidth(2),
-                    3: const pw.FlexColumnWidth(2),
+                    0: const pw.FlexColumnWidth(2), // Image
+                    1: const pw.FlexColumnWidth(5), // Produit
+                    2: const pw.FlexColumnWidth(2), // Qté
+                    3: const pw.FlexColumnWidth(3), // Prix
+                    4: const pw.FlexColumnWidth(3), // Total
                   },
                   children: [
                     pw.TableRow(
                       decoration: const pw.BoxDecoration(color: PdfColors.grey300),
                       children: [
+                        pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Image', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
                         pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Produit', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
                         pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Qté', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
                         pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Prix', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
@@ -61,20 +66,38 @@ class PDFInvoice {
                       ],
                     ),
                     ...produits.map((item) {
+                      String? imagePath;
+
+                      // 🔍 Essayer de récupérer le produit à partir de son ID
+                      final produit = Hive.box<Produit>('produits').get(item.produitId);
+                      if (produit != null && produit.imagePath != null && File(produit.imagePath!).existsSync()) {
+                        imagePath = produit.imagePath;
+                      }
+
                       return pw.TableRow(
                         children: [
+                          // Image
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(4),
+                            child: imagePath != null
+                                ? pw.Image(
+                              pw.MemoryImage(File(imagePath).readAsBytesSync()),
+                              width: 30,
+                              height: 30,
+                              fit: pw.BoxFit.cover,
+                            )
+                                : pw.Text('N/A'),
+                          ),
                           pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(item.produitNom)),
                           pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(item.quantite.toString())),
                           pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('${item.prixUnitaire.toStringAsFixed(2)} HTG')),
                           pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('${(item.quantite * item.prixUnitaire).toStringAsFixed(2)} HTG')),
                         ],
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
                 pw.Divider(),
-
-                // ✅ Total, Versement et Balance bien alignés
                 pw.Align(
                   alignment: pw.Alignment.centerRight,
                   child: pw.Column(
@@ -88,7 +111,6 @@ class PDFInvoice {
                     ],
                   ),
                 ),
-
                 pw.SizedBox(height: 20),
                 pw.Text('Merci pour votre achat !', style: pw.TextStyle(fontStyle: pw.FontStyle.italic)),
               ],

@@ -16,24 +16,32 @@ class EditProductScreen extends StatefulWidget {
 
 class _EditProductScreenState extends State<EditProductScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _categorieController;
   late TextEditingController _prixController;
-  late TextEditingController _stockController;
   File? _imageFile;
   String? _selectedCategory;
   final _newCategoryController = TextEditingController();
   bool _isNewCategory = false;
+  late TextEditingController _stockController;
+
 
 
   @override
   void initState() {
     super.initState();
-    _categorieController = TextEditingController(text: widget.produit.categorie);
     _prixController = TextEditingController(text: widget.produit.prixUnitaire.toString());
-    _stockController = TextEditingController(text: widget.produit.stock.toString());
     _selectedCategory = widget.produit.categorie;
+    _stockController = TextEditingController(text: widget.produit.stock.toString());
 
   }
+
+  @override
+  void dispose() {
+    _prixController.dispose();
+    _stockController.dispose();
+    _newCategoryController.dispose();
+    super.dispose();
+  }
+
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -61,6 +69,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         categorie,
         double.parse(_prixController.text),
         _imageFile?.path ?? widget.produit.imagePath,
+        int.parse(_stockController.text),
       );
 
       Navigator.pop(context);
@@ -135,6 +144,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   validator: (v) => v!.isEmpty ? 'Champ requis' : null,
                 ),
                 Text('Stock actuel : ${widget.produit.stock}'),
+                const SizedBox(height: 5),
+                TextFormField(
+                  controller: _stockController,
+                  decoration: const InputDecoration(labelText: 'Stock'),
+                  keyboardType: TextInputType.number,
+                  validator: (v) => v!.isEmpty ? 'Champ requis' : null,
+                ),
                 const SizedBox(height: 10),
                 _imageFile == null
                     ? (widget.produit.imagePath != null

@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lea_store_office/screens/vente_transaction.dart';
 import 'package:provider/provider.dart';
+import '../models/produit.dart';
 import '../models/transaction.dart' as t;
 import '../providers/panier_provider.dart';
+import '../providers/product_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/pdf_invoice.dart';
 import 'achat_transaction.dart';
@@ -119,17 +121,33 @@ class TransactionDetailScreen extends StatelessWidget {
                 separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final item = transaction.produits[index];
+                  Produit? produit;
+                  try {
+                    produit = Provider.of<ProductProvider>(context, listen: false)
+                        .produits
+                        .firstWhere((p) => p.id == item.produitId);
+                  } catch (e) {
+                    produit = null;
+                  }
+                  final imagePath = produit?.imagePath;
                   return ListTile(
-                    leading: item.produitImagePath != null
+                    leading: imagePath != null && File(imagePath).existsSync()
                         ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.file(File(item.produitImagePath!), width: 50, height: 50, fit: BoxFit.cover),
+                      child: Image.file(
+                        File(imagePath),
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      ),
                     )
                         : const Icon(Icons.shopping_bag_outlined),
                     title: Text(item.produitNom, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text('Quantité : ${item.quantite} • Cout : ${item.prixUnitaire.toStringAsFixed(2)} HTG'),
                     trailing: Text('${item.sousTotal.toStringAsFixed(2)} HTG'),
                   );
+
+
                 },
               ),
             ),
@@ -192,7 +210,7 @@ class TransactionDetailScreen extends StatelessWidget {
               Center(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                     Navigator.pushReplacement(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (_) => const AchatTransactionScreen()),
                     );

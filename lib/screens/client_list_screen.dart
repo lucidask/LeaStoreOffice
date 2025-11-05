@@ -6,7 +6,7 @@ import 'add_client_screen.dart';
 import 'edit_client_screen.dart';
 import 'client_detail_screen.dart';
 import '../widgets/custom_search_bar.dart';
-import '../widgets/paginated_list.dart'; // ✅ N'oublie pas d'importer
+import '../widgets/paginated_list.dart';
 
 class ClientListScreen extends StatefulWidget {
   final String? highlightedClientId;
@@ -105,7 +105,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                 final isHighlighted = c.id == widget.highlightedClientId;
 
                 return Card(
-                  color: isHighlighted ? Colors.lightBlueAccent.withOpacity(0.3) : null,
+                  color: isHighlighted ? Colors.lightBlueAccent.withAlpha((0.3 * 255).round()) : null,
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: ListTile(
                     leading: c.imagePath != null

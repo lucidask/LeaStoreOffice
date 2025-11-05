@@ -49,6 +49,12 @@ class PanierProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeItem(TransactionItem item) {
+    _items.remove(item);
+    _stockTemp.remove(item.produitId); // Facultatif mais propre
+    notifyListeners();
+  }
+
   void clearPanier() {
     _items.clear();
     _stockTemp.clear();

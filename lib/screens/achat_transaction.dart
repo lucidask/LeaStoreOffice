@@ -32,31 +32,31 @@ class _AchatTransactionScreenState extends State<AchatTransactionScreen> {
   void _ajouterProduit() {
     if (_selectedProduit == null || _quantiteAjoutee <= 0 || _prixAjoute <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Remplissez tous les champs correctement.')),
-      );
-      return;
+           const SnackBar(content: Text('Remplissez tous les champs correctement.')),
+    );
+    return;
     }
 
     final exist = _items.indexWhere((e) => e.produitId == _selectedProduit!.id);
     if (exist != -1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ce produit a déjà été ajouté.')),
-      );
-      return;
+    ScaffoldMessenger.of(context).showSnackBar(
+     const SnackBar(content: Text('Ce produit a déjà été ajouté.')),
+    );
+    return;
     }
 
     setState(() {
-      _items.add(TransactionItem(
-        produitId: _selectedProduit!.id,
-        produitNom: _selectedProduit!.codeProduit,
-        produitImagePath: _selectedProduit!.imagePath,
-        quantite: _quantiteAjoutee,
-        prixUnitaire: _prixAjoute,
-      ));
+    _items.add(TransactionItem(
+    produitId: _selectedProduit!.id,
+    produitNom: _selectedProduit!.codeProduit,
+    produitImagePath: _selectedProduit!.imagePath,
+    quantite: _quantiteAjoutee,
+    prixUnitaire: _prixAjoute,
+    ));
 
-      _selectedProduit = null;
-      _quantiteController.clear();
-      _prixController.clear();
+    _selectedProduit = null;
+    _quantiteController.clear();
+    _prixController.clear();
     });
   }
 

@@ -6,8 +6,15 @@ import 'package:lea_store_office/database/hive_service.dart';
 
 class ProductProvider extends ChangeNotifier {
   final Box<Produit> _produitBox = HiveService.produitsBox;
+  List<Produit> _produits = [];
 
-  List<Produit> get produits => _produitBox.values.toList();
+  List<Produit> get produits => _produits;
+
+  // ✅ Nouvelle méthode pour recharger tous les produits depuis Hive
+  void loadProduits() {
+    _produits = _produitBox.values.toList();
+    notifyListeners();
+  }
 
   void ajouterProduit(String categorie, double prixUnitaire, int? stock, String? imagePath) {
     final codeProduit = 'PRD-${DateTime.now().millisecondsSinceEpoch}';
@@ -22,9 +29,8 @@ class ProductProvider extends ChangeNotifier {
     );
 
     _produitBox.put(nouveauProduit.id, nouveauProduit);
-    notifyListeners();
+    loadProduits(); // 🔁 Mise à jour de la liste
   }
-
 
   void modifierProduit(
       String id,
@@ -32,6 +38,7 @@ class ProductProvider extends ChangeNotifier {
       String categorie,
       double prixUnitaire,
       String? imagePath,
+      int stock,
       ) {
     final produit = _produitBox.get(id);
     if (produit != null) {
@@ -39,24 +46,22 @@ class ProductProvider extends ChangeNotifier {
       produit.categorie = categorie;
       produit.prixUnitaire = prixUnitaire;
       produit.imagePath = imagePath;
+      produit.stock = stock;
       produit.save();
-      notifyListeners();
+      loadProduits(); // 🔁 Mise à jour
     }
   }
 
-
   void supprimerProduit(String id) {
     _produitBox.delete(id);
-    notifyListeners();
+    loadProduits(); // 🔁 Mise à jour
   }
 
   List<String> getCategories() {
-    return _produitBox.values
+    return _produits
         .map((p) => p.categorie)
         .where((c) => c.isNotEmpty)
         .toSet()
         .toList();
   }
-
-
 }

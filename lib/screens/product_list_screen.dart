@@ -5,8 +5,7 @@ import '../providers/product_provider.dart';
 import 'add_product_screen.dart';
 import 'edit_product_screen.dart';
 import '../widgets/custom_search_bar.dart';
-import '../widgets/paginated_list.dart'; // ✅ Assurez-vous d'importer votre fichier PaginatedList
-
+import '../widgets/paginated_list.dart';
 class ProductListScreen extends StatefulWidget {
   final String? highlightProductId;
   const ProductListScreen({super.key, this.highlightProductId});
@@ -147,7 +146,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               itemBuilder: (context, p) {
                 final isHighlighted = p.id == widget.highlightProductId;
                 return Card(
-                  color: isHighlighted ? Colors.lightBlueAccent.withOpacity(0.3) : null,
+                  color: isHighlighted ? Colors.lightBlueAccent.withAlpha((0.3 * 255).round()) : null,
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: ListTile(
                     leading: p.imagePath != null

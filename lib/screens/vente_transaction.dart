@@ -89,7 +89,7 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => panierProvider.decrement(item, 0),
+                                  onPressed: () => panierProvider.removeItem(item),
                                 ),
                               ],
                             ),
@@ -399,7 +399,7 @@ class _VenteTransactionScreenState extends State<VenteTransactionScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withAlpha((0.3 * 255).round()),
                     spreadRadius: 1,
                     blurRadius: 5,
                     offset: const Offset(0, 2),

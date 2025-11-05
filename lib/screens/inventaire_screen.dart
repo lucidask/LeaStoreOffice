@@ -126,13 +126,18 @@ class _InventaireScreenState extends State<InventaireScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Grand Total Achat : ${formatCurrency.format(totalAchat)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('Grand Total Vente : ${formatCurrency.format(totalVente)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  'Grand Total Achat : ${formatCurrency.format(totalAchat)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Grand Total Vente : ${formatCurrency.format(totalVente)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ),

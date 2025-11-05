@@ -16,7 +16,6 @@ class TransactionProvider extends ChangeNotifier {
   List<TransactionSupprimee> get transactionsSupprimees => _transactionSupprimeeBox.values.toList();
 
 
-
   TransactionProvider() {
     loadTransactions();
   }
@@ -78,35 +77,43 @@ class TransactionProvider extends ChangeNotifier {
     return newTransaction;
   }
 
-
-
   void supprimerTransaction(String id) {
     final transaction = _transactionBox.get(id);
     if (transaction == null) return;
 
-    // Restaurer le stock
+    // 1. Restaurer le stock
     for (var item in transaction.produits) {
       final produit = _produitBox.get(item.produitId);
       if (produit != null) {
         if (transaction.type == 'vente') {
-          produit.stock += item.quantite; // Remet le stock
+          produit.stock += item.quantite;
         } else if (transaction.type == 'achat') {
-          produit.stock -= item.quantite; // Retire du stock
+          produit.stock -= item.quantite;
         }
         produit.save();
       }
     }
 
-    // Restaurer le solde client si crédit
-    if (transaction.type == 'vente' && transaction.isCredit && transaction.clientId != null) {
+    // 2. Si vente → ajuster solde et dépôt du client
+    if (transaction.type == 'vente' && transaction.clientId != null) {
       final client = _clientBox.get(transaction.clientId);
       if (client != null) {
-        client.solde -= transaction.total;
+        // a. Rétablir le dépôt utilisé
+        final depotUtilise = transaction.depotUtilise ?? 0;
+        client.depot = (client.depot ?? 0) + depotUtilise;
+
+        // b. Retirer le montant mis en solde si vente à crédit
+        if (transaction.isCredit) {
+          final versement = transaction.versement ?? 0;
+          final resteAPayer = transaction.total - versement - depotUtilise;
+          client.solde -= resteAPayer;
+        }
+
         client.save();
       }
     }
 
-    // Sauvegarder l'historique de la suppression
+    // 3. Sauvegarder la suppression
     final suppression = TransactionSupprimee(
       id: DateTime.now().toIso8601String(),
       dateSuppression: DateTime.now(),
@@ -114,12 +121,22 @@ class TransactionProvider extends ChangeNotifier {
     );
     _transactionSupprimeeBox.put(suppression.id, suppression);
 
-    // Supprimer la transaction
+    // 4. Supprimer la transaction
     _transactionBox.delete(id);
 
-    // Mettre à jour la liste
+    // 5. Recharger la liste
     loadTransactions();
     notifyListeners();
   }
+
+  void supprimerTransactionsSupprimeesAnciennes({int jours = 30}) {
+    final now = DateTime.now();
+    transactionsSupprimees.removeWhere((t) {
+      final difference = now.difference(t.dateSuppression).inDays;
+      return difference >= jours;
+    });
+    notifyListeners();
+  }
+
 
 }

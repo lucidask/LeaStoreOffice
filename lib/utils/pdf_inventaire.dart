@@ -37,7 +37,7 @@ class PDFInventaire {
             pw.Text('Inventaire et Évaluation de Stock',
                 style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 20),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               border: pw.TableBorder.all(width: 0.5),
               headerAlignment: pw.Alignment.center,
               cellAlignment: pw.Alignment.center,

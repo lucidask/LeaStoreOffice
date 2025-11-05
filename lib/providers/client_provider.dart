@@ -6,8 +6,15 @@ import 'package:lea_store_office/database/hive_service.dart';
 
 class ClientProvider extends ChangeNotifier {
   final Box<Client> _clientBox = HiveService.clientsBox;
+  List<Client> _clients = [];
 
-  List<Client> get clients => _clientBox.values.toList();
+  List<Client> get clients => _clients;
+
+  // ✅ Nouvelle méthode pour recharger depuis Hive
+  void loadClients() {
+    _clients = _clientBox.values.toList();
+    notifyListeners();
+  }
 
   Client ajouterClient(String nom, String? telephone, String? imagePath) {
     final nouveauClient = Client(
@@ -15,11 +22,10 @@ class ClientProvider extends ChangeNotifier {
       nom: nom,
       telephone: telephone,
       imagePath: imagePath,
-      solde: 0,//balance
+      solde: 0,
     );
-
     _clientBox.put(nouveauClient.id, nouveauClient);
-    notifyListeners();
+    loadClients(); // rafraîchir la liste
     return nouveauClient;
   }
 
@@ -30,13 +36,13 @@ class ClientProvider extends ChangeNotifier {
       client.telephone = telephone;
       client.imagePath = imagePath;
       client.save();
-      notifyListeners();
+      loadClients();
     }
   }
 
   void supprimerClient(String id) {
     _clientBox.delete(id);
-    notifyListeners();
+    loadClients();
   }
 
   void initialiserClientAnonyme() {
@@ -50,7 +56,7 @@ class ClientProvider extends ChangeNotifier {
         solde: 0,
       );
       _clientBox.put(clientAnonyme.id, clientAnonyme);
-      notifyListeners();
+      loadClients();
     }
   }
 
@@ -59,7 +65,7 @@ class ClientProvider extends ChangeNotifier {
     if (client != null) {
       client.solde -= montant;
       client.save();
-      notifyListeners();
+      loadClients();
     }
   }
 
@@ -68,7 +74,7 @@ class ClientProvider extends ChangeNotifier {
     if (client != null) {
       client.solde += montant;
       client.save();
-      notifyListeners();
+      loadClients();
     }
   }
 
@@ -77,9 +83,7 @@ class ClientProvider extends ChangeNotifier {
     if (client != null) {
       client.depot = (client.depot ?? 0) + montant;
       client.save();
-      notifyListeners();
+      loadClients();
     }
   }
-
-
 }

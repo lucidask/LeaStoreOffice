@@ -24,7 +24,14 @@ class _ComptabiliteScreenState extends State<ComptabiliteScreen> {
 
     final totalAchats = achats.fold(0.0, (sum, t) => sum + t.total);
     final totalVentes = ventes.fold(0.0, (sum, t) => sum + t.total);
+    final ventesCash = ventes.where((t) => !t.isCredit).toList();
+    final ventesCredit = ventes.where((t) => t.isCredit).toList();
+
+    final totalCash = ventesCash.fold(0.0, (sum, t) => sum + t.total);
+    final totalCredit = ventesCredit.fold(0.0, (sum, t) => sum + t.total);
+
     final solde = totalVentes - totalAchats;
+
 
     return Scaffold(
       appBar: AppBar(
@@ -44,6 +51,7 @@ class _ComptabiliteScreenState extends State<ComptabiliteScreen> {
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () async {
+              if (!mounted) return;
               await _dateFilterHelper.pickDateRange(context);
               setState(() {}); // Rafraîchit après sélection
             },
@@ -62,6 +70,30 @@ class _ComptabiliteScreenState extends State<ComptabiliteScreen> {
                   style: const TextStyle(fontStyle: FontStyle.italic),
                 ),
               ),
+            Wrap(
+              spacing: 20,
+              runSpacing: 10,
+              alignment: WrapAlignment.spaceEvenly,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.payments, color: Colors.green),
+                    const SizedBox(width: 6),
+                    Text('Cash: ${totalCash.toStringAsFixed(2)} HTG'),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.receipt_long, color: Colors.blue),
+                    const SizedBox(width: 6),
+                    Text('Crédit: ${totalCredit.toStringAsFixed(2)} HTG'),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Card(
               child: ListTile(
                 title: const Text('Total Achats'),
